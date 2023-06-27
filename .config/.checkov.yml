@@ -1,0 +1,16 @@
+download-external-modules: False
+evaluate-variables: true
+file:
+- 'tf.json'
+framework:
+- terraform_plan
+skip-check:
+- CKV2_GCP*
+- CKV_AZURE*
+- CKV2_AZURE*
+repo-root-for-plan-enrichment:
+- '.'
+summary-position: bottom
+output: 'cli'
+compact: True
+quiet: True
