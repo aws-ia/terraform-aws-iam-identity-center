@@ -14,110 +14,110 @@ resource "aws_identitystore_user" "sso_users" {
 
 # -- PROFILE DETAILS --
 # - Primary Information -
-  // (Required) The name that is typically displayed when the user is referenced
-  // The default is the provided given name and family name.
+  # (Required) The name that is typically displayed when the user is referenced
+  # The default is the provided given name and family name.
   # display_name = each.value.display_name
   display_name = join(" ",[each.value.given_name, each.value.family_name])
 
-  //(Required, Forces new resource) A unique string used to identify the user. This value can consist of letters, accented characters, symbols, numbers, and punctuation. This value is specified at the time the user is created and stored as an attribute of the user object in the identity store. The limit is 128 characters
+  #(Required, Forces new resource) A unique string used to identify the user. This value can consist of letters, accented characters, symbols, numbers, and punctuation. This value is specified at the time the user is created and stored as an attribute of the user object in the identity store. The limit is 128 characters
   user_name    = each.value.user_name
 
-  //(Required) Details about the user's full name. Detailed below
+  #(Required) Details about the user's full name. Detailed below
   name {
-    // (Required) First name
+    # (Required) First name
     given_name  = each.value.given_name
-    // (Optional) Middle name
-    // Default value is null.
+    # (Optional) Middle name
+    # Default value is null.
     middle_name = lookup(each.value, "middle_name", null)
-    // (Required) Last name
+    # (Required) Last name
     family_name = each.value.family_name
-    // (Optional) The name that is typically displayed when the name is shown for display.
-    // Default value is the provided given name and family name.
+    # (Optional) The name that is typically displayed when the name is shown for display.
+    # Default value is the provided given name and family name.
     formatted = lookup(each.value, "name_formatted", join(" ",[each.value.given_name, each.value.family_name]))
-    // (Optional) The honorific prefix of the user.
-    // Default value is null.
+    # (Optional) The honorific prefix of the user.
+    # Default value is null.
     honorific_prefix = lookup(each.value, "honorific_prefix", null)
-    // (Optional) The honorific suffix of the user
-    // Default value is null.
+    # (Optional) The honorific suffix of the user
+    # Default value is null.
     honorific_suffix = lookup(each.value, "honorific_suffix", null)
   }
 
-  // (Optional) Details about the user's email. At most 1 email is allowed. Detailed below.
-  // Required for this module to ensure users have an email on file for resetting password and receiving OTP.
+  # (Optional) Details about the user's email. At most 1 email is allowed. Detailed below.
+  # Required for this module to ensure users have an email on file for resetting password and receiving OTP.
   emails {
-    // (Optional) The email address. This value must be unique across the identity store.
-    // Required for this module as explained above.
+    # (Optional) The email address. This value must be unique across the identity store.
+    # Required for this module as explained above.
     value = each.value.email
-    //(Optional) When true, this is the primary email associated with the user.
-    // Default value is true.
+    #(Optional) When true, this is the primary email associated with the user.
+    # Default value is true.
     primary = lookup(each.value, "is_primary_email", true)
-    // (Optional) The type of email.
-    // Default value is null.
+    # (Optional) The type of email.
+    # Default value is null.
     type = lookup(each.value, "email_type", null)
   }
 
-  //(Optional) Details about the user's phone number. At most 1 phone number is allowed. Detailed below.
+  #(Optional) Details about the user's phone number. At most 1 phone number is allowed. Detailed below.
   phone_numbers {
-    //(Optional) The user's phone number.
-    // Default value is null.
+    #(Optional) The user's phone number.
+    # Default value is null.
     value = lookup(each.value, "phone_number", null)
-    // (Optional) When true, this is the primary phone number associated with the user.
-    // Default value is true.
+    # (Optional) When true, this is the primary phone number associated with the user.
+    # Default value is true.
     primary = lookup(each.value, "is_primary_phone_number", true)
-    // (Optional) The type of phone number.
-    // // Default value is null.
+    # (Optional) The type of phone number.
+    # # Default value is null.
     type = lookup(each.value, "phone_number_type", null)
   }
 
-  // (Optional) Details about the user's address. At most 1 address is allowed. Detailed below.
+  # (Optional) Details about the user's address. At most 1 address is allowed. Detailed below.
   addresses{
-    // (Optional) The country that this address is in.
-    // Default value is null.
+    # (Optional) The country that this address is in.
+    # Default value is null.
     country = lookup(each.value, "country", null)
-    // (Optional) The address locality. You can use this for City/Town/Village
-    // Default value is null.
+    # (Optional) The address locality. You can use this for City/Town/Village
+    # Default value is null.
     locality = lookup(each.value, "locality", null)
-    //(Optional) The name that is typically displayed when the address is shown for display.
-    // Default value is the provided street address, locality, region, postal code, and country.
+    #(Optional) The name that is typically displayed when the address is shown for display.
+    # Default value is the provided street address, locality, region, postal code, and country.
     formatted = lookup(each.value, "address_formatted", join(" ",[lookup(each.value, "street_address", ""), lookup(each.value, "locality", ""), lookup(each.value, "region", ""), lookup(each.value, "postal_code", ""), lookup(each.value, "country", "")]))
-    // (Optional) The postal code of the address.
-    // Default value is null.
+    # (Optional) The postal code of the address.
+    # Default value is null.
     postal_code = lookup(each.value, "postal_code", null)
-    // (Optional) When true, this is the primary address associated with the user.
-    // Default value is null.
+    # (Optional) When true, this is the primary address associated with the user.
+    # Default value is null.
     primary = lookup(each.value, "is_primary_address", true)
-    // (Optional) The region of the address. You can use this for State/Parish/Province.
-    // Default value is true.
+    # (Optional) The region of the address. You can use this for State/Parish/Province.
+    # Default value is true.
     region = lookup(each.value, "region", null)
-    // (Optional) The street of the address.
-    // Default value is null.
+    # (Optional) The street of the address.
+    # Default value is null.
     street_address = lookup(each.value, "street_address", null)
-    // (Optional) The type of address.
-    // Default value is null.
+    # (Optional) The type of address.
+    # Default value is null.
     type = lookup(each.value, "address_type", null)
   }
 
   # -- Additional information --
-  // (Optional) The user type.
-  // Default value is null.
+  # (Optional) The user type.
+  # Default value is null.
   user_type = lookup(each.value, "user_type", null)
-  // (Optional) The user's title. Ex. Developer, Principal Architect, Account Manager, etc.
-  // Default value is null.
+  # (Optional) The user's title. Ex. Developer, Principal Architect, Account Manager, etc.
+  # Default value is null.
   title = lookup(each.value, "title", null)
-  // (Optional) The user's geographical region or location. Ex. US-East, EU-West, etc.
-  // Default value is null.
+  # (Optional) The user's geographical region or location. Ex. US-East, EU-West, etc.
+  # Default value is null.
   locale = lookup(each.value, "locale", null)
-  // (Optional) An alternate name for the user.
-  // Default value is null.
+  # (Optional) An alternate name for the user.
+  # Default value is null.
   nickname = lookup(each.value, "nickname", null)
-  // (Optional) The preferred language of the user.
-  // Default value is null.
+  # (Optional) The preferred language of the user.
+  # Default value is null.
   preferred_language = lookup(each.value, "preferred_language", null)
-  // (Optional) An URL that may be associated with the user.
-  // Default value is null.
+  # (Optional) An URL that may be associated with the user.
+  # Default value is null.
   profile_url = lookup(each.value, "profile_url", null)
-  // (Optional) The user's time zone.
-  // Default value is null.
+  # (Optional) The user's time zone.
+  # Default value is null.
   # timezone = each.value.timezone
   timezone = lookup(each.value, "timezone", null)
 
@@ -152,8 +152,8 @@ resource "aws_ssoadmin_permission_set" "pset" {
 
   instance_arn     = local.ssoadmin_instance_arn
   description      = lookup(each.value, "description", null)
-  relay_state      = lookup(each.value, "relay_state", null) // (Optional) URL used to redirect users within the application during the federation authentication process
-  session_duration = lookup(each.value, "session_duration", null) // The length of time that the application user sessions are valid in the ISO-8601 standard
+  relay_state      = lookup(each.value, "relay_state", null) # (Optional) URL used to redirect users within the application during the federation authentication process
+  session_duration = lookup(each.value, "session_duration", null) # The length of time that the application user sessions are valid in the ISO-8601 standard
   tags             = lookup(each.value, "tags", {})
 }
 
@@ -195,7 +195,7 @@ resource "aws_ssoadmin_customer_managed_policy_attachment" "pset_customer_manage
 # }
 
 resource "aws_ssoadmin_account_assignment" "account_assignment"  {
-  for_each = local.principals_and_their_account_assignments // for_each arguement must be a map, or set of strings. Tuples won't work
+  for_each = local.principals_and_their_account_assignments # for_each arguement must be a map, or set of strings. Tuples won't work
 
   instance_arn       = local.ssoadmin_instance_arn
   permission_set_arn          = data.aws_ssoadmin_permission_set.existing_permission_sets[each.key].arn

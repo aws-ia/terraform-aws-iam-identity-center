@@ -30,7 +30,7 @@ data "aws_identitystore_group" "existing_sso_groups" {
       attribute_value = each.value.group_name
     }
   }
-// Prevents failure if data fetch is attempted before GROUPS are created
+# Prevents failure if data fetch is attempted before GROUPS are created
   depends_on = [ aws_identitystore_group.sso_groups ]
 }
 
@@ -47,7 +47,7 @@ data "aws_identitystore_user" "existing_sso_users" {
       attribute_value = each.value.user_name
     }
   }
-  // Prevents failure if data fetch is attempted before USERS are created
+# Prevents failure if data fetch is attempted before USERS are created
   depends_on = [ aws_identitystore_user.sso_users ]
 }
 
@@ -63,7 +63,7 @@ data "aws_identitystore_group" "identity_store_group" {
       attribute_value = each.value
     }
   }
-  // Prevents failure if data fetch is attempted before GROUPS are created
+# Prevents failure if data fetch is attempted before GROUPS are created
   depends_on = [ aws_identitystore_group.sso_groups ]
 }
 
@@ -79,7 +79,7 @@ data "aws_identitystore_user" "identity_store_user" {
       attribute_value = each.value
     }
   }
-  // Prevents failure if data fetch is attempted before USERS are created
+# Prevents failure if data fetch is attempted before USERS are created
   depends_on = [ aws_identitystore_user.sso_users ]
 }
 
@@ -114,6 +114,6 @@ data "aws_ssoadmin_permission_set" "existing_permission_sets" {
   for_each          = local.principals_and_their_account_assignments
   instance_arn = local.ssoadmin_instance_arn
   name         = each.value.permission_set
-  // Prevents failure if data fetch is attempted before Permission Sets are created
+# Prevents failure if data fetch is attempted before Permission Sets are created
   depends_on = [ aws_ssoadmin_permission_set.pset ]
 }
