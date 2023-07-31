@@ -13,7 +13,7 @@ cd ${PROJECT_PATH}
 echo "Running Checkov Analysis"
 terraform init
 terraform plan -out tf.plan
-terraform show -json tf.plan  > tf.json 
+terraform show -json tf.plan  > tf.json
 checkov --config-file ${PROJECT_PATH}/.config/checkov.yml
 
 #********** Terratest execution **********
