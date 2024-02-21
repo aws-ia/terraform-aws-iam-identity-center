@@ -11,7 +11,3 @@ terraform {
     }
   }
 }
-
-# provider "aws" {
-#   region = "us-east-1" // change to region you wish to use
-# }
