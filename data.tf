@@ -8,36 +8,36 @@ data "aws_ssoadmin_instances" "sso_instance" {}
 # meta argument to fetch necessary information (group_id, user_id) for each user. These values are needed
 # to assign the sso users to groups.
 # Ex: nuzumaki_Admin = {
-      # group_name = "Admin"
-      # user_name = "nuzumaki"
+# group_name = "Admin"
+# user_name = "nuzumaki"
 #     }
 #     nuzumaki_Dev = {
-      # group_name = "Dev"
-      # user_name = "nuzumaki"
+# group_name = "Dev"
+# user_name = "nuzumaki"
 #     }
 #     suchihaQA = {
-      # group_name = "QA"
-      # user_name = "suchiha"
+# group_name = "QA"
+# user_name = "suchiha"
 #     }
 
 # - Fetch of SSO Groups to be used for group membership assignment -
 data "aws_identitystore_group" "existing_sso_groups" {
-  for_each = local.users_and_their_groups
+  for_each          = local.users_and_their_groups
   identity_store_id = local.sso_instance_id
   alternate_identifier {
     unique_attribute {
-      attribute_path = "DisplayName"
+      attribute_path  = "DisplayName"
       attribute_value = each.value.group_name
     }
   }
-# Prevents failure if data fetch is attempted before GROUPS are created
-  depends_on = [ aws_identitystore_group.sso_groups ]
+  // Prevents failure if data fetch is attempted before GROUPS are created
+  depends_on = [aws_identitystore_group.sso_groups]
 }
 
 
 # - Fetch of SSO Users to be used for group membership assignment -
 data "aws_identitystore_user" "existing_sso_users" {
-  for_each = local.users_and_their_groups
+  for_each          = local.users_and_their_groups
   identity_store_id = local.sso_instance_id
 
   alternate_identifier {
@@ -47,14 +47,14 @@ data "aws_identitystore_user" "existing_sso_users" {
       attribute_value = each.value.user_name
     }
   }
-# Prevents failure if data fetch is attempted before USERS are created
-  depends_on = [ aws_identitystore_user.sso_users ]
+  // Prevents failure if data fetch is attempted before USERS are created
+  depends_on = [aws_identitystore_user.sso_users]
 }
 
 
 # - Fetch of SSO Groups to be used for account assignments (for GROUPS) -
 data "aws_identitystore_group" "identity_store_group" {
-  for_each = toset(local.account_assignments_for_groups)
+  for_each          = toset(local.account_assignments_for_groups)
   identity_store_id = local.sso_instance_id
 
   alternate_identifier {
@@ -63,8 +63,8 @@ data "aws_identitystore_group" "identity_store_group" {
       attribute_value = each.value
     }
   }
-# Prevents failure if data fetch is attempted before GROUPS are created
-  depends_on = [ aws_identitystore_group.sso_groups ]
+  // Prevents failure if data fetch is attempted before GROUPS are created
+  depends_on = [aws_identitystore_group.sso_groups]
 }
 
 
@@ -79,8 +79,8 @@ data "aws_identitystore_user" "identity_store_user" {
       attribute_value = each.value
     }
   }
-# Prevents failure if data fetch is attempted before USERS are created
-  depends_on = [ aws_identitystore_user.sso_users ]
+  // Prevents failure if data fetch is attempted before USERS are created
+  depends_on = [aws_identitystore_user.sso_users]
 }
 
 
@@ -92,10 +92,10 @@ data "aws_identitystore_user" "identity_store_user" {
 # Format is 'Type:<principal_type>__Principal:<principal_name>__Permission:<permission_set>__Account:<account_id>'
 
 # Ex: Type:GROUP__Principal:Admin__Permission:AdministratorAccess__Account:111111111111 = {
-      # principal_name = "Admin"
-      # principal_type = "GROUP"
-      # permission_sets = "AdministratorAccess"
-      # account_ids = "111111111111"
+# principal_name = "Admin"
+# principal_type = "GROUP"
+# permission_sets = "AdministratorAccess"
+# account_ids = "111111111111"
 #     }
 #     Type:GROUP__Principal:Admin__Permission:AdministratorAccess__Account:222222222222 = {
 #       # principal_name = "Admin"
@@ -104,16 +104,16 @@ data "aws_identitystore_user" "identity_store_user" {
 #       # account_ids = "222222222222"
 #     }
 #     Type:GROUP__Principal:Admin__Permission:ViewOnlyAccess__Account:111111111111 = {
-      # principal_name = "Admin"
-      # principal_type = "GROUP"
-      # permission_sets = "ViewOnlyAccess"
-      # account_ids = "111111111111"
+# principal_name = "Admin"
+# principal_type = "GROUP"
+# permission_sets = "ViewOnlyAccess"
+# account_ids = "111111111111"
 #     }
 
 data "aws_ssoadmin_permission_set" "existing_permission_sets" {
-  for_each          = local.principals_and_their_account_assignments
+  for_each     = local.principals_and_their_account_assignments
   instance_arn = local.ssoadmin_instance_arn
   name         = each.value.permission_set
-# Prevents failure if data fetch is attempted before Permission Sets are created
-  depends_on = [ aws_ssoadmin_permission_set.pset ]
+  // Prevents failure if data fetch is attempted before Permission Sets are created
+  depends_on = [aws_ssoadmin_permission_set.pset]
 }
