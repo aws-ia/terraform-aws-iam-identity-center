@@ -43,8 +43,4 @@ go test -timeout 45m
 
 echo "End of Functional Tests"
 
-#********** CLEANUP *************
-echo "Cleaning up all temp files and artifacts"
-cd ${PROJECT_PATH}
-make clean
 
