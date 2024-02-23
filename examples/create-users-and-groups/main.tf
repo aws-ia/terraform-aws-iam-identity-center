@@ -1,5 +1,5 @@
 module "aws-iam-identity-center" {
-  source = "../../.." // local example
+  source = "../.." // local example
   # source = "aws-ia/iam-identity-center/aws" // remote example
 
   // Create desired GROUPS in IAM Identity Center

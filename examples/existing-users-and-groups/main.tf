@@ -1,5 +1,6 @@
 module "aws-iam-identity-center" {
-  source = "aws-ia/iam-identity-center/aws"
+  source = "../.." // local example
+  # source = "aws-ia/iam-identity-center/aws" // remote example
 
   // Create permissions sets backed by AWS managed policies
   permission_sets = {
