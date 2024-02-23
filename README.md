@@ -1,5 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# Features
+# AWS IAM Identity Center Terraform Module
+
+## Features
 
 - Dynamic User Creation
 - Dynamic Group Creation
@@ -11,11 +13,12 @@
 - AWS Managed Policy Support
 - Customer Managed Policy Support
 
-# Important
+## Important
+
 - Locals are used to allow for global changes to multiple account assignments. If hard coding the account ids for your account assignments, you would need to change them in every place you want to reference the value. To simplify this, we recommend storing your desired account ids in [local values](https://developer.hashicorp.com/terraform/language/values/locals). See the `examples` directory for more information and sample code.
 - When using **Customer Managed Policies** with account assignments, you must ensure these policies exist in all target accounts **before** using the module. Failure to do this will cause deployment errors because IAM Identity Center will attempt to reference policies that do not exist.
 
-# Basic Usage - Create Users and Groups with AWS Managed Policies
+## Basic Usage - Create Users and Groups with AWS Managed Policies
 ```hcl
 // This is a template file for a basic deployment.
 // Modify the parameters below with actual values
@@ -106,7 +109,7 @@ module "aws-iam-identity-center" {
 }
 ```
 
-# Contributing
+## Contributing
 
 See the `CONTRIBUTING.md` file for information on how to contribute.
 
