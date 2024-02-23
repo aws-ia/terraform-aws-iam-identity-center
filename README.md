@@ -19,6 +19,7 @@
 - When using **Customer Managed Policies** with account assignments, you must ensure these policies exist in all target accounts **before** using the module. Failure to do this will cause deployment errors because IAM Identity Center will attempt to reference policies that do not exist.
 
 ## Basic Usage - Create Users and Groups with AWS Managed Policies
+
 ```hcl
 // This is a template file for a basic deployment.
 // Modify the parameters below with actual values
