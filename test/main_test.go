@@ -10,7 +10,7 @@ func TestAWSandCustomerManagedPolicies(t *testing.T) {
 
 	terraformOptions := &terraform.Options{
 		// The path to where your Terraform code is located
-		TerraformDir: "../examples/create-users-and-groups/aws-managed-policies",
+		TerraformDir: "../examples/create-users-and-groups",
 
 	}
 
