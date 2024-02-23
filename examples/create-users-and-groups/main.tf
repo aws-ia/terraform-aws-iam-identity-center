@@ -1,30 +1,6 @@
-# AWS IAM Identity Center Terraform Module
-
-## Features
-
-- Dynamic User Creation
-- Dynamic Group Creation
-- Dynamic Group Membership Creation
-- Dynamic Permission Set Creation
-- Dynamic Account Assignment Creation
-- Dynamic Reference of Existing Users
-- Dynamic Reference of Existing Groups
-- AWS Managed Policy Support
-- Customer Managed Policy Support
-
-## Important
-
-- Locals are used to allow for global changes to multiple account assignments. If hard coding the account ids for your account assignments, you would need to change them in every place you want to reference the value. To simplify this, we recommend storing your desired account ids in [local values](https://developer.hashicorp.com/terraform/language/values/locals). See the `examples` directory for more information and sample code.
-- When using **Customer Managed Policies** with account assignments, you must ensure these policies exist in all target accounts **before** using the module. Failure to do this will cause deployment errors because IAM Identity Center will attempt to reference policies that do not exist.
-
-## Basic Usage - Create Users and Groups with AWS Managed Policies
-
-```hcl
-// This is a template file for a basic deployment.
-// Modify the parameters below with actual values
-
 module "aws-iam-identity-center" {
-  source = "aws-ia/iam-identity-center/aws"
+  source = "../.." // local example
+  # source = "aws-ia/iam-identity-center/aws" // remote example
 
   // Create desired GROUPS in IAM Identity Center
   sso_groups = {
@@ -84,11 +60,13 @@ module "aws-iam-identity-center" {
   account_assignments = {
     Admin : {
       principal_name  = "Admin"                                   // name of the user or group you wish to have access to the account(s)
-      principal_type  = "GROUP"                                   // entity type (user or group) you wish to have access to the account(s)
+      principal_type  = "GROUP"                                   // entity type (user or group) you wish to have access to the account(s). Valid values are "USER" or "GROUP"
       permission_sets = ["AdministratorAccess", "ViewOnlyAccess"] // permissions the user/group will have in the account(s)
       account_ids = [                                             // account(s) the group will have access to. Permissions they will have in account are above line
-      "111111111111", // replace with your desired account id
-      "222222222222", // replace with your desired account id
+        local.account1_account_id,
+        # local.account2_account_id,
+        # local.account3_account_id, // these are defined in a locals.tf file, example is in this directory
+        # local.account4_account_id,
       ]
     },
     Audit : {
@@ -96,15 +74,12 @@ module "aws-iam-identity-center" {
       principal_type  = "GROUP"
       permission_sets = ["ViewOnlyAccess"]
       account_ids = [
-      "111111111111",
-      "222222222222",
+        local.account1_account_id,
+        # local.account2_account_id,
+        # local.account3_account_id,
+        # local.account4_account_id,
       ]
     },
   }
 
 }
-```
-
-## Contributing
-
-See the `CONTRIBUTING.md` file for information on how to contribute.
