@@ -9,6 +9,7 @@ echo "Starting Functional Tests"
 
 cd ${PROJECT_PATH}
 
+<<<<<<< before updating
 #********** TF Env Vars *************
 export AWS_DEFAULT_REGION=us-east-1
 
@@ -21,6 +22,8 @@ terraform show -json tf.plan  > tf.json
 checkov --config-file ${PROJECT_PATH}/.config/.checkov.yml
 
 
+=======
+>>>>>>> after updating
 #********** Terratest execution **********
 echo "Running Terratest"
 export GOPROXY=https://goproxy.io,direct
