@@ -186,21 +186,20 @@ resource "aws_ssoadmin_customer_managed_policy_attachment" "pset_customer_manage
 }
 
 
-#  ! NOT CURRENTLY SUPPORTED !
 # - Inline Policy -
-# resource "aws_ssoadmin_permission_set_inline_policy" "pset_inline_policy" {
-#   for_each = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.inline_policy) }
+resource "aws_ssoadmin_permission_set_inline_policy" "pset_inline_policy" {
+  for_each = { for pset in local.pset_inline_policy_maps : pset.pset_name => pset }
 
-#   inline_policy      = each.value.inline_policy[0]
-#   instance_arn       = local.ssoadmin_instance_arn
-#   permission_set_arn = aws_ssoadmin_permission_set.pset[each.key].arn
-# }
+  inline_policy      = each.value.inline_policy
+  instance_arn       = local.ssoadmin_instance_arn
+  permission_set_arn = aws_ssoadmin_permission_set.pset[each.key].arn
+}
 
 resource "aws_ssoadmin_account_assignment" "account_assignment" {
   for_each = local.principals_and_their_account_assignments // for_each arguement must be a map, or set of strings. Tuples won't work
 
   instance_arn       = local.ssoadmin_instance_arn
-  permission_set_arn = data.aws_ssoadmin_permission_set.existing_permission_sets[each.key].arn
+  permission_set_arn = data.aws_ssoadmin_permission_set.existing_permission_sets[each.value.permission_set].arn
 
   principal_id   = each.value.principal_type == "GROUP" ? data.aws_identitystore_group.identity_store_group[each.value.principal_name].id : data.aws_identitystore_user.identity_store_user[each.value.principal_name].id
   principal_type = each.value.principal_type

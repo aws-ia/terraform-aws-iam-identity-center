@@ -32,11 +32,7 @@ locals {
   # pset_index is the corresponding index of the map of maps (which is the variable permission_sets)
   aws_managed_permission_sets      = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.aws_managed_policies) }
   customer_managed_permission_sets = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.customer_managed_policies) }
-
-  #  ! NOT CURRENTLY SUPPORTED !
-  # inline_policy_permission_sets = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.inline_policy) }
-
-
+  inline_policy_permission_sets    = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.inline_policy) }
 
   # When using the 'for' expression in Terraform:
   # [ and ] produces a tuple
@@ -67,23 +63,34 @@ locals {
     ]
   ])
 
-  #  ! NOT CURRENTLY SUPPORTED !
   # - Inline Policy -
-  #   pset_inline_policy_maps = flatten([
-  #     for pset_name, pset_index in local.inline_policy_permission_sets : [
-  #       for policy in pset_index.inline_policy : {
-  #         pset_name  = pset_name
-  #         inline_policy = policy
-  #         # path = path
-  #       } if pset_index.inline_policy != null && can(pset_index.inline_policy)
-  #     ]
-  #   ])
+  pset_inline_policy_maps = flatten([
+    for pset_name, pset_index in local.inline_policy_permission_sets : [
+      {
+        pset_name     = pset_name
+        inline_policy = pset_index.inline_policy
+      }
+    ]
+  ])
+
 
 }
 
 
 # - Account Assignments -
 locals {
+  # account_info mappings
+  accounts_non_master_ids_maps = {
+    for idx, account in data.aws_organizations_organization.organization.non_master_accounts :
+    account.name => account.id
+    //     if account.status == "ACTIVE" && can(data.aws_organizations_organization.organization.non_master_accounts)
+  }
+  accounts_ids_maps = merge(
+    {
+      // "${data.aws_organizations_organization.organization.master_account_name}"= "${data.aws_organizations_organization.organization.master_account_id}" = 
+    },
+    local.accounts_non_master_ids_maps
+  )
   # Create a new local variable by flattening the complex type given in the variable "account_assignments"
   # This will be a 'tuple'
   flatten_account_assignment_data = flatten([
@@ -93,7 +100,7 @@ locals {
           permission_set = pset
           principal_name = var.account_assignments[this_assignment].principal_name
           principal_type = var.account_assignments[this_assignment].principal_type
-          account_id     = account
+          account_id     = length(regexall("[0-9]{12}", account)) > 0 ? account : lookup(local.accounts_ids_maps, account, null)
         }
       ]
     ]
@@ -106,6 +113,9 @@ locals {
     for s in local.flatten_account_assignment_data : format("Type:%s__Principal:%s__Permission:%s__Account:%s", s.principal_type, s.principal_name, s.permission_set, s.account_id) => s
   }
 
+  existing_permission_sets = distinct([
+    for pset in local.principals_and_their_account_assignments : pset.permission_set
+  ])
 
   # iterates over account_assignents, sets that to be assignment.principal_name ONLY if the assignment.principal_type
   #is GROUP. Essentially stores all the possible 'assignments' (account assignments) that would be attached to a user group
