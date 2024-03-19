@@ -79,6 +79,19 @@ locals {
 
 # - Account Assignments -
 locals {
+  accounts_non_master_ids_maps = {
+    for idx, account in data.aws_organizations_organization.organization.non_master_accounts :
+    account.name => account.id
+    //     if account.status == "ACTIVE" && can(data.aws_organizations_organization.organization.non_master_accounts)
+  }
+
+  accounts_ids_maps = merge(
+    {
+      // "${data.aws_organizations_organization.organization.master_account_name}"= "${data.aws_organizations_organization.organization.master_account_id}" = 
+
+    },
+    local.accounts_non_master_ids_maps
+  )
   # Create a new local variable by flattening the complex type given in the variable "account_assignments"
   # This will be a 'tuple'
   flatten_account_assignment_data = flatten([
@@ -88,7 +101,7 @@ locals {
           permission_set = pset
           principal_name = var.account_assignments[this_assignment].principal_name
           principal_type = var.account_assignments[this_assignment].principal_type
-          account_id     = account
+          account_id     = length(regexall("[0-9]{12}", account)) > 0 ? account : lookup(local.accounts_ids_maps, account, null)
         }
       ]
     ]
@@ -101,6 +114,9 @@ locals {
     for s in local.flatten_account_assignment_data : format("Type:%s__Principal:%s__Permission:%s__Account:%s", s.principal_type, s.principal_name, s.permission_set, s.account_id) => s
   }
 
+  existing_permission_sets = distinct([
+    for pset in local.principals_and_their_account_assignments : pset.permission_set
+  ])
 
   # iterates over account_assignents, sets that to be assignment.principal_name ONLY if the assignment.principal_type
   #is GROUP. Essentially stores all the possible 'assignments' (account assignments) that would be attached to a user group
@@ -112,4 +128,11 @@ locals {
 
   # 'account_assignments_for_users' is effectively a list of principal names where the account type is USER
   account_assignments_for_users = [for assignment in var.account_assignments : assignment.principal_name if assignment.principal_type == "USER"]
+
+  # account_info mappings
+
+}
+
+output "bbb" {
+  value = local.accounts_ids_maps
 }

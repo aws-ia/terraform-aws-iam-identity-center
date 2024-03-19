@@ -199,7 +199,7 @@ resource "aws_ssoadmin_account_assignment" "account_assignment" {
   for_each = local.principals_and_their_account_assignments // for_each arguement must be a map, or set of strings. Tuples won't work
 
   instance_arn       = local.ssoadmin_instance_arn
-  permission_set_arn = data.aws_ssoadmin_permission_set.existing_permission_sets[each.key].arn
+  permission_set_arn = data.aws_ssoadmin_permission_set.existing_permission_sets[each.value.permission_set].arn
 
   principal_id   = each.value.principal_type == "GROUP" ? data.aws_identitystore_group.identity_store_group[each.value.principal_name].id : data.aws_identitystore_user.identity_store_user[each.value.principal_name].id
   principal_type = each.value.principal_type
