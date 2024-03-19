@@ -79,16 +79,15 @@ locals {
 
 # - Account Assignments -
 locals {
+  # account_info mappings
   accounts_non_master_ids_maps = {
     for idx, account in data.aws_organizations_organization.organization.non_master_accounts :
     account.name => account.id
     //     if account.status == "ACTIVE" && can(data.aws_organizations_organization.organization.non_master_accounts)
   }
-
   accounts_ids_maps = merge(
     {
       // "${data.aws_organizations_organization.organization.master_account_name}"= "${data.aws_organizations_organization.organization.master_account_id}" = 
-
     },
     local.accounts_non_master_ids_maps
   )
@@ -128,11 +127,4 @@ locals {
 
   # 'account_assignments_for_users' is effectively a list of principal names where the account type is USER
   account_assignments_for_users = [for assignment in var.account_assignments : assignment.principal_name if assignment.principal_type == "USER"]
-
-  # account_info mappings
-
-}
-
-output "bbb" {
-  value = local.accounts_ids_maps
 }
