@@ -30,9 +30,14 @@ locals {
 
   # pset_name is the attribute name for each permission set map/object
   # pset_index is the corresponding index of the map of maps (which is the variable permission_sets)
-  aws_managed_permission_sets      = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.aws_managed_policies) }
-  customer_managed_permission_sets = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.customer_managed_policies) }
-  inline_policy_permission_sets    = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.inline_policy) }
+  aws_managed_permission_sets                           = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.aws_managed_policies) }
+  customer_managed_permission_sets                      = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.customer_managed_policies) }
+  inline_policy_permission_sets                         = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.inline_policy) }
+  permissions_boundary_aws_managed_permission_sets      = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.permissions_boundary.managed_policy_arn) }
+  permissions_boundary_customer_managed_permission_sets = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.permissions_boundary.customer_managed_policy_reference) }
+
+
+
 
   # When using the 'for' expression in Terraform:
   # [ and ] produces a tuple
@@ -73,13 +78,31 @@ locals {
     ]
   ])
 
+  # - Permissions boundary -
+  pset_permissions_boundary_aws_managed_maps = flatten([
+    for pset_name, pset_index in local.permissions_boundary_aws_managed_permission_sets : [
+      {
+        pset_name = pset_name
+        boundary  = pset_index.permissions_boundary.managed_policy_arn
+      }
+    ]
+  ])
+
+  pset_permissions_boundary_customer_managed_maps = flatten([
+    for pset_name, pset_index in local.permissions_boundary_customer_managed_permission_sets : [
+      {
+        pset_name = pset_name
+        boundary  = pset_index.permissions_boundary.customer_managed_policy_reference
+      }
+    ]
+  ])
 
 }
 
 
 # - Account Assignments -
 locals {
-  # account_info mappings
+
   accounts_non_master_ids_maps = {
     for idx, account in data.aws_organizations_organization.organization.non_master_accounts :
     account.name => account.id
@@ -87,10 +110,12 @@ locals {
   }
   accounts_ids_maps = merge(
     {
-      // "${data.aws_organizations_organization.organization.master_account_name}"= "${data.aws_organizations_organization.organization.master_account_id}" = 
+      // require terraform-provider-aws v5.46.0
+      "${data.aws_organizations_organization.organization.master_account_name}" = "${data.aws_organizations_organization.organization.master_account_id}"
     },
     local.accounts_non_master_ids_maps
   )
+
   # Create a new local variable by flattening the complex type given in the variable "account_assignments"
   # This will be a 'tuple'
   flatten_account_assignment_data = flatten([
@@ -113,9 +138,11 @@ locals {
     for s in local.flatten_account_assignment_data : format("Type:%s__Principal:%s__Permission:%s__Account:%s", s.principal_type, s.principal_name, s.permission_set, s.account_id) => s
   }
 
+
   existing_permission_sets = distinct([
     for pset in local.principals_and_their_account_assignments : pset.permission_set
   ])
+
 
   # iterates over account_assignents, sets that to be assignment.principal_name ONLY if the assignment.principal_type
   #is GROUP. Essentially stores all the possible 'assignments' (account assignments) that would be attached to a user group

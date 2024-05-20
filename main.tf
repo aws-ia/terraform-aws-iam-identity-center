@@ -188,11 +188,37 @@ resource "aws_ssoadmin_customer_managed_policy_attachment" "pset_customer_manage
 
 # - Inline Policy -
 resource "aws_ssoadmin_permission_set_inline_policy" "pset_inline_policy" {
-  for_each = { for pset in local.pset_inline_policy_maps : pset.pset_name => pset }
+  for_each = { for pset in local.pset_inline_policy_maps : pset.pset_name => pset if can(pset.inline_policy) }
 
   inline_policy      = each.value.inline_policy
   instance_arn       = local.ssoadmin_instance_arn
   permission_set_arn = aws_ssoadmin_permission_set.pset[each.key].arn
+}
+
+# - Permissions Boundary -
+resource "aws_ssoadmin_permissions_boundary_attachment" "pset_permissions_boundary_aws_managed" {
+  for_each = { for pset in local.pset_permissions_boundary_aws_managed_maps : pset.pset_name => pset if can(pset.boundary) }
+
+  instance_arn       = local.ssoadmin_instance_arn
+  permission_set_arn = aws_ssoadmin_permission_set.pset[each.key].arn
+  permissions_boundary {
+    managed_policy_arn = each.value.boundary
+
+  }
+}
+
+resource "aws_ssoadmin_permissions_boundary_attachment" "pset_permissions_boundary_customer_managed" {
+  for_each = { for pset in local.pset_permissions_boundary_customer_managed_maps : pset.pset_name => pset if can(pset.boundary) }
+
+  instance_arn       = local.ssoadmin_instance_arn
+  permission_set_arn = aws_ssoadmin_permission_set.pset[each.key].arn
+  permissions_boundary {
+    customer_managed_policy_reference {
+      name = each.value.boundary
+      path = "/"
+    }
+
+  }
 }
 
 resource "aws_ssoadmin_account_assignment" "account_assignment" {
@@ -201,7 +227,7 @@ resource "aws_ssoadmin_account_assignment" "account_assignment" {
   instance_arn       = local.ssoadmin_instance_arn
   permission_set_arn = data.aws_ssoadmin_permission_set.existing_permission_sets[each.value.permission_set].arn
 
-  principal_id   = each.value.principal_type == "GROUP" ? (aws_identitystore_group.sso_groups[each.value.principal_name].group_id != null ? aws_identitystore_group.sso_groups[each.value.principal_name].group_id : data.aws_identitystore_group.identity_store_group[each.value.principal_name].id) : (aws_identitystore_user.sso_users[each.value.principal_name].user_id != null ? aws_identitystore_user.sso_users[each.value.principal_name].user_id : data.aws_identitystore_user.identity_store_user[each.value.principal_name].id)
+  principal_id   = each.value.principal_type == "GROUP" ? data.aws_identitystore_group.identity_store_group[each.value.principal_name].id : data.aws_identitystore_user.identity_store_user[each.value.principal_name].id
   principal_type = each.value.principal_type
 
   target_id   = each.value.account_id
