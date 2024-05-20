@@ -134,14 +134,14 @@ See the `CONTRIBUTING.md` file for information on how to contribute.
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.46.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.35.0 |
 | <a name="requirement_awscc"></a> [awscc](#requirement\_awscc) | >= 0.55.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.46.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.35.0 |
 
 ## Modules
 

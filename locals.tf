@@ -107,17 +107,10 @@ locals {
 # - Account Assignments -
 locals {
 
-  accounts_non_master_ids_maps = {
-    for idx, account in data.aws_organizations_organization.organization.non_master_accounts : account.name => account.id
-    //     if account.status == "ACTIVE" && can(data.aws_organizations_organization.organization.non_master_accounts)
+  accounts_ids_maps = {
+    for idx, account in data.aws_organizations_organization.organization.accounts : account.name => account.id
+    if account.status == "ACTIVE" && can(data.aws_organizations_organization.organization.accounts)
   }
-  accounts_ids_maps = merge(
-    {
-      // require terraform-provider-aws v5.46.0
-      (data.aws_organizations_organization.organization.master_account_name) = (data.aws_organizations_organization.organization.master_account_id)
-    },
-    local.accounts_non_master_ids_maps
-  )
 
   # Create a new local variable by flattening the complex type given in the variable "account_assignments"
   # This will be a 'tuple'
