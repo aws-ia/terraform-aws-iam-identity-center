@@ -197,25 +197,25 @@ resource "aws_ssoadmin_permission_set_inline_policy" "pset_inline_policy" {
 
 # - Permissions Boundary -
 resource "aws_ssoadmin_permissions_boundary_attachment" "pset_permissions_boundary_aws_managed" {
-  for_each = { for pset in local.pset_permissions_boundary_aws_managed_maps : pset.pset_name => pset if can(pset.boundary) }
+  for_each = { for pset in local.pset_permissions_boundary_aws_managed_maps : pset.pset_name => pset if can(pset.boundary.managed_policy_arn) }
 
   instance_arn       = local.ssoadmin_instance_arn
   permission_set_arn = aws_ssoadmin_permission_set.pset[each.key].arn
   permissions_boundary {
-    managed_policy_arn = each.value.boundary
+    managed_policy_arn = each.value.boundary.managed_policy_arn
 
   }
 }
 
 resource "aws_ssoadmin_permissions_boundary_attachment" "pset_permissions_boundary_customer_managed" {
-  for_each = { for pset in local.pset_permissions_boundary_customer_managed_maps : pset.pset_name => pset if can(pset.boundary) }
+  for_each = { for pset in local.pset_permissions_boundary_customer_managed_maps : pset.pset_name => pset if can(pset.boundary.customer_managed_policy_reference) }
 
   instance_arn       = local.ssoadmin_instance_arn
   permission_set_arn = aws_ssoadmin_permission_set.pset[each.key].arn
   permissions_boundary {
     customer_managed_policy_reference {
-      name = each.value.boundary
-      path = "/"
+      name = each.value.boundary.customer_managed_policy_reference.name
+      path = can(each.value.boundary.customer_managed_policy_reference.path) ? each.value.boundary.customer_managed_policy_reference.path : "/"
     }
 
   }

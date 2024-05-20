@@ -83,7 +83,9 @@ locals {
     for pset_name, pset_index in local.permissions_boundary_aws_managed_permission_sets : [
       {
         pset_name = pset_name
-        boundary  = pset_index.permissions_boundary.managed_policy_arn
+        boundary = {
+          managed_policy_arn = pset_index.permissions_boundary.managed_policy_arn
+        }
       }
     ]
   ])
@@ -92,7 +94,9 @@ locals {
     for pset_name, pset_index in local.permissions_boundary_customer_managed_permission_sets : [
       {
         pset_name = pset_name
-        boundary  = pset_index.permissions_boundary.customer_managed_policy_reference
+        boundary = {
+          customer_managed_policy_reference = pset_index.permissions_boundary.customer_managed_policy_reference
+        }
       }
     ]
   ])
@@ -104,14 +108,13 @@ locals {
 locals {
 
   accounts_non_master_ids_maps = {
-    for idx, account in data.aws_organizations_organization.organization.non_master_accounts :
-    account.name => account.id
+    for idx, account in data.aws_organizations_organization.organization.non_master_accounts : account.name => account.id
     //     if account.status == "ACTIVE" && can(data.aws_organizations_organization.organization.non_master_accounts)
   }
   accounts_ids_maps = merge(
     {
       // require terraform-provider-aws v5.46.0
-      "${data.aws_organizations_organization.organization.master_account_name}" = "${data.aws_organizations_organization.organization.master_account_id}"
+      (data.aws_organizations_organization.organization.master_account_name) = (data.aws_organizations_organization.organization.master_account_id)
     },
     local.accounts_non_master_ids_maps
   )
