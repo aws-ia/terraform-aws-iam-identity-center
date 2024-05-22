@@ -139,6 +139,14 @@ locals {
     for pset in local.principals_and_their_account_assignments : pset.permission_set
   ])
 
+  this_permission_sets = keys(var.permission_sets)
+  this_groups = [
+    for group in var.sso_groups : group.group_name
+  ]
+  this_users = [
+    for user in var.sso_users : user.user_name
+  ]
+
 
   # iterates over account_assignents, sets that to be assignment.principal_name ONLY if the assignment.principal_type
   #is GROUP. Essentially stores all the possible 'assignments' (account assignments) that would be attached to a user group

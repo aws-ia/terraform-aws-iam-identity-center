@@ -115,7 +115,7 @@ data "aws_ssoadmin_permission_set" "existing_permission_sets" {
   instance_arn = local.ssoadmin_instance_arn
   name         = each.value
   // Prevents failure if data fetch is attempted before Permission Sets are created
-  depends_on = [aws_ssoadmin_permission_set.pset]
+  //depends_on = [aws_ssoadmin_permission_set.pset]
 }
 
 
