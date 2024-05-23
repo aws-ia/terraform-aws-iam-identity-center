@@ -203,7 +203,6 @@ resource "aws_ssoadmin_permissions_boundary_attachment" "pset_permissions_bounda
   permission_set_arn = aws_ssoadmin_permission_set.pset[each.key].arn
   permissions_boundary {
     managed_policy_arn = each.value.boundary.managed_policy_arn
-
   }
 }
 

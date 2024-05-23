@@ -134,11 +134,6 @@ locals {
     for s in local.flatten_account_assignment_data : format("Type:%s__Principal:%s__Permission:%s__Account:%s", s.principal_type, s.principal_name, s.permission_set, s.account_id) => s
   }
 
-
-  existing_permission_sets = distinct([
-    for pset in local.principals_and_their_account_assignments : pset.permission_set
-  ])
-
   this_permission_sets = keys(var.permission_sets)
   this_groups = [
     for group in var.sso_groups : group.group_name
@@ -147,6 +142,11 @@ locals {
     for user in var.sso_users : user.user_name
   ]
 
+  // Permission sets created from other than this module.
+  existing_permission_sets = distinct([
+    for pset in local.principals_and_their_account_assignments : pset.permission_set if !contains(local.this_permission_sets, pset.permission_set)
+  ])
+
 
   # iterates over account_assignents, sets that to be assignment.principal_name ONLY if the assignment.principal_type
   #is GROUP. Essentially stores all the possible 'assignments' (account assignments) that would be attached to a user group
@@ -154,8 +154,8 @@ locals {
   # same thing, for sso_users but for USERs not GROUPs
 
   # 'account_assignments_for_groups' is effectively a list of principal names where the account type is GROUP
-  account_assignments_for_groups = [for assignment in var.account_assignments : assignment.principal_name if assignment.principal_type == "GROUP"]
+  account_assignments_for_groups = [for assignment in var.account_assignments : assignment.principal_name if(assignment.principal_type == "GROUP" && !contains(local.this_groups, assignment.principal_name))]
 
   # 'account_assignments_for_users' is effectively a list of principal names where the account type is USER
-  account_assignments_for_users = [for assignment in var.account_assignments : assignment.principal_name if assignment.principal_type == "USER"]
+  account_assignments_for_users = [for assignment in var.account_assignments : assignment.principal_name if assignment.principal_type == "USER" && !contains(local.this_users, assignment.principal_name)]
 }
