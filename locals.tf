@@ -147,6 +147,13 @@ locals {
     for pset in local.principals_and_their_account_assignments : pset.permission_set if !contains(local.this_permission_sets, pset.permission_set)
   ])
 
+  existing_sso_users = distinct([
+    //for user_gourp in local.users_and_their_groups : user_gourp.user_name if !contains(local.this_users, user_group.user_name)
+    for k, v in local.users_and_their_groups : v.user_name if !contains(local.this_users, v.user_name)
+  ])
+  existing_sso_groups = distinct([
+    for k, v in local.users_and_their_groups : v.group_name if !contains(local.this_groups, v.group_name)
+  ])
 
   # iterates over account_assignents, sets that to be assignment.principal_name ONLY if the assignment.principal_type
   #is GROUP. Essentially stores all the possible 'assignments' (account assignments) that would be attached to a user group

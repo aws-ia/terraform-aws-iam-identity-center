@@ -137,8 +137,10 @@ resource "aws_identitystore_group_membership" "sso_group_membership" {
   for_each          = local.users_and_their_groups
   identity_store_id = local.sso_instance_id
 
-  group_id  = data.aws_identitystore_group.existing_sso_groups[each.key].group_id
-  member_id = data.aws_identitystore_user.existing_sso_users[each.key].user_id
+  //group_id  = data.aws_identitystore_group.existing_sso_groups[each.key].group_id
+  group_id = (contains(local.this_groups, each.value.group_name) ? aws_identitystore_group.sso_groups[each.value.group_name].group_id : data.aws_identitystore_group.existing_sso_groups[each.value.group_name].id)
+  //member_id = data.aws_identitystore_user.existing_sso_users[each.key].user_id
+  member_id = (contains(local.this_users, each.value.user_name) ? aws_identitystore_user.sso_users[each.value.user_name].user_id : data.aws_identitystore_user.existing_sso_users[each.value.user_name].id)
 }
 
 
@@ -227,7 +229,7 @@ resource "aws_ssoadmin_account_assignment" "account_assignment" {
   permission_set_arn = contains(local.this_permission_sets, each.value.permission_set) ? aws_ssoadmin_permission_set.pset[each.value.permission_set].arn : data.aws_ssoadmin_permission_set.existing_permission_sets[each.value.permission_set].arn
 
 
-  principal_id   = each.value.principal_type == "GROUP" ? (contains(local.this_groups, each.value.principal_name) ? aws_identitystore_group.sso_groups[each.value.principal_name].group_id : data.aws_identitystore_group.identity_store_group[each.value.principal_name].id) : (contains(local.this_users, each.value.principal_name) ? aws_identitystore_user.sso_users[each.value.principal_name].user_id : data.aws_identitystore_user.identity_store_user[each.value.principal_name].id)
+  principal_id   = each.value.principal_type == "GROUP" ? (contains(local.this_groups, each.value.principal_name) ? aws_identitystore_group.sso_groups[each.value.principal_name].group_id : data.aws_identitystore_group.existing_sso_groups[each.value.principal_name].id) : (contains(local.this_users, each.value.principal_name) ? aws_identitystore_user.sso_users[each.value.principal_name].user_id : data.aws_identitystore_user.existing_sso_users[each.value.principal_name].id)
   principal_type = each.value.principal_type
 
   target_id   = each.value.account_id

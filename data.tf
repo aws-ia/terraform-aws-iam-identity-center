@@ -20,68 +20,40 @@ data "aws_ssoadmin_instances" "sso_instance" {}
 # user_name = "suchiha"
 #     }
 
-# - Fetch of SSO Groups to be used for group membership assignment -
+# - Fetch of SSO Groups (externally defined) to be used for group membership assignment -
 data "aws_identitystore_group" "existing_sso_groups" {
-  for_each          = local.users_and_their_groups
+  for_each          = toset(local.existing_sso_groups)
   identity_store_id = local.sso_instance_id
   alternate_identifier {
     unique_attribute {
       attribute_path  = "DisplayName"
-      attribute_value = each.value.group_name
+      attribute_value = each.value
     }
   }
-  // Prevents failure if data fetch is attempted before GROUPS are created
-  depends_on = [aws_identitystore_group.sso_groups]
 }
 
 
-# - Fetch of SSO Users to be used for group membership assignment -
+# - Fetch of SSO Users (externally defined) to be used for group membership assignment -
 data "aws_identitystore_user" "existing_sso_users" {
-  for_each          = local.users_and_their_groups
+  for_each          = toset(local.existing_sso_users)
   identity_store_id = local.sso_instance_id
 
   alternate_identifier {
     # Filter users by user_name (nuzumaki, suchiha, dovis, etc.)
     unique_attribute {
       attribute_path  = "UserName"
-      attribute_value = each.value.user_name
-    }
-  }
-  // Prevents failure if data fetch is attempted before USERS are created
-  depends_on = [aws_identitystore_user.sso_users]
-}
-
-
-# - Fetch of SSO Groups to be used for account assignments (for GROUPS) -
-data "aws_identitystore_group" "identity_store_group" {
-  for_each          = toset(local.account_assignments_for_groups)
-  identity_store_id = local.sso_instance_id
-
-  alternate_identifier {
-    unique_attribute {
-      attribute_path  = "DisplayName"
       attribute_value = each.value
     }
   }
-  // Prevents failure if data fetch is attempted before GROUPS are created
-  depends_on = [aws_identitystore_group.sso_groups]
 }
 
-
-# - Fetch of SSO Groups to be used for account assignments (for USERS) -
-data "aws_identitystore_user" "identity_store_user" {
-  for_each          = toset(local.account_assignments_for_users)
-  identity_store_id = local.sso_instance_id
-
-  alternate_identifier {
-    unique_attribute {
-      attribute_path  = "UserName"
-      attribute_value = each.value
-    }
-  }
-  // Prevents failure if data fetch is attempted before USERS are created
-  depends_on = [aws_identitystore_user.sso_users]
+# - Fetch of Permissions sets (externally defined) to be used for account assignment -
+data "aws_ssoadmin_permission_set" "existing_permission_sets" {
+  for_each     = toset(local.existing_permission_sets)
+  instance_arn = local.ssoadmin_instance_arn
+  name         = each.value
 }
+
 
 
 # The local variable 'principals_and_their_permission_sets' is a map of values for relevant user information.
@@ -110,13 +82,6 @@ data "aws_identitystore_user" "identity_store_user" {
 # account_ids = "111111111111"
 #     }
 
-data "aws_ssoadmin_permission_set" "existing_permission_sets" {
-  for_each     = toset(local.existing_permission_sets)
-  instance_arn = local.ssoadmin_instance_arn
-  name         = each.value
-  // Prevents failure if data fetch is attempted before Permission Sets are created
-  depends_on = [aws_ssoadmin_permission_set.pset]
-}
 
 
 data "aws_organizations_organization" "organization" {}
