@@ -1,6 +1,9 @@
 # Fetch existing SSO Instance
 data "aws_ssoadmin_instances" "sso_instance" {}
 
+# Fetch existing AWS Organization
+data "aws_organizations_organization" "organization" {}
+
 
 # The local variable 'users_and_their_groups' is a map of values for relevant user information.
 # It contians a list of all users with the name of their group_assignments appended to the end of the string.
@@ -84,4 +87,4 @@ data "aws_ssoadmin_permission_set" "existing_permission_sets" {
 
 
 
-data "aws_organizations_organization" "organization" {}
+
