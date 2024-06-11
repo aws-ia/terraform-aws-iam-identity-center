@@ -24,14 +24,14 @@ module "aws-iam-identity-center" {
 
   // Create desired USERS in IAM Identity Center
   sso_users = {
-    nuzumaki : {
+    NarutoUzumaki : {
       group_membership = ["Admin", "Dev", "QA", "Audit"]
       user_name        = "nuzumaki"
       given_name       = "Naruto"
       family_name      = "Uzumaki"
       email            = "nuzumaki@hiddenleaf.village"
     },
-    suchiha : {
+    SasukeUchiha : {
       group_membership = ["QA", "Audit"]
       user_name        = "suchiha"
       given_name       = "Sasuke"
