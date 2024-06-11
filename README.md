@@ -18,6 +18,7 @@
 - Locals are used to allow for global changes to multiple account assignments. If hard coding the account ids for your account assignments, you would need to change them in every place you want to reference the value. To simplify this, we recommend storing your desired account ids in [local values](https://developer.hashicorp.com/terraform/language/values/locals). See the `examples` directory for more information and sample code.
 - When using **Customer Managed Policies** with account assignments, you must ensure these policies exist in all target accounts **before** using the module. Failure to do this will cause deployment errors because IAM Identity Center will attempt to reference policies that do not exist.
 - **Ensure that the name of your object(s) match the name of your principal(s) (e.g. user name or group name). See the following example with object/principal names 'Admin' and 'nuzumaki'**:
+
 ```hcl
   sso_groups = {
     Admin : {
