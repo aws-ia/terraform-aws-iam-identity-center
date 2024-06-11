@@ -79,6 +79,28 @@ module "aws-iam-identity-center" {
       aws_managed_policies = ["arn:aws:iam::aws:policy/job-function/ViewOnlyAccess"]
       tags                 = { ManagedBy = "Terraform" }
     },
+    CustomPermissionAccess = {
+      description          = "Provides CustomPoweruser permissions.",
+      session_duration     = "PT3H", // how long until session expires - this means 3 hours. max is 12 hours
+      aws_managed_policies = [
+        "arn:aws:iam::aws:policy/ReadOnlyAccess",
+        "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+      ]
+      inline_policy        = data.aws_iam_policy_document.CustomPermissionInlinePolicy.json
+
+      // Only either managed_policy_arn or customer_managed_policy_reference can be specified.
+      // Before using customer_managed_policy_reference, first deploy the policy to the account.
+      // Don't in-place managed_policy_arn to/from customer_managed_policy_reference, delete it once.
+      permissions_boundary = {
+        // managed_policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
+
+        customer_managed_policy_reference = {
+          name = "ExamplePermissionsBoundaryPolicy"
+          // path = "/"
+        }
+      }
+      tags                 = { ManagedBy = "Terraform" }
+    },
   }
 
   // Assign users/groups access to accounts with the specified permissions
@@ -139,10 +161,12 @@ No modules.
 | [aws_ssoadmin_customer_managed_policy_attachment.pset_customer_managed_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_customer_managed_policy_attachment) | resource |
 | [aws_ssoadmin_managed_policy_attachment.pset_aws_managed_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_managed_policy_attachment) | resource |
 | [aws_ssoadmin_permission_set.pset](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_permission_set) | resource |
+| [aws_ssoadmin_permission_set_inline_policy.pset_inline_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_permission_set_inline_policy) | resource |
+| [aws_ssoadmin_permissions_boundary_attachment.pset_permissions_boundary_aws_managed](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_permissions_boundary_attachment) | resource |
+| [aws_ssoadmin_permissions_boundary_attachment.pset_permissions_boundary_customer_managed](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_permissions_boundary_attachment) | resource |
 | [aws_identitystore_group.existing_sso_groups](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/identitystore_group) | data source |
-| [aws_identitystore_group.identity_store_group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/identitystore_group) | data source |
 | [aws_identitystore_user.existing_sso_users](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/identitystore_user) | data source |
-| [aws_identitystore_user.identity_store_user](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/identitystore_user) | data source |
+| [aws_organizations_organization.organization](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/organizations_organization) | data source |
 | [aws_ssoadmin_instances.sso_instance](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssoadmin_instances) | data source |
 | [aws_ssoadmin_permission_set.existing_permission_sets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssoadmin_permission_set) | data source |
 
