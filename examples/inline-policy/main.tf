@@ -50,6 +50,12 @@ module "aws-iam-identity-center" {
   source = "../.." // local example
   # source = "aws-ia/iam-identity-center/aws" // remote example
 
+  existing_sso_groups = {
+    AWSControlTowerAdmins : {
+      group_name = "AWSControlTowerAdmins"
+    }
+  }
+
   sso_groups = {
     Admin : {
       group_name        = "Admin"
@@ -74,6 +80,12 @@ module "aws-iam-identity-center" {
       given_name       = "Sasuke"
       family_name      = "Uchiha"
       email            = "suchiha@hiddenleaf.village"
+    },
+  }
+
+  existing_permission_sets = {
+    AWSAdministratorAccess : {
+      permission_set_name = "AWSAdministratorAccess"
     },
   }
 
@@ -115,6 +127,7 @@ module "aws-iam-identity-center" {
     Admin : {
       principal_name = "Admin"
       principal_type = "GROUP"
+      principal_idp  = "INTERNAL"
       permission_sets = [
         "AdministratorAccess",
         "PowerUserAccess",
@@ -125,14 +138,15 @@ module "aws-iam-identity-center" {
       account_ids = [
         // replace with your own account id
         local.account1_account_id,
-        # "111111111111",
-        # "222222222222",
-        # "333333333333",
+        # local.account2_account_id
+        # local.account3_account_id
+        # local.account4_account_id
       ]
     },
     Dev : {
       principal_name = "Dev"
       principal_type = "GROUP"
+      principal_idp  = "INTERNAL"
       permission_sets = [
         "PowerUserAccess",
         "ViewOnlyAccess",
@@ -140,9 +154,9 @@ module "aws-iam-identity-center" {
       account_ids = [
         // replace with your own account id
         local.account1_account_id,
-        # "111111111111",
-        # "222222222222",
-        # "333333333333",
+        # local.account2_account_id
+        # local.account3_account_id
+        # local.account4_account_id
       ]
     },
   }
