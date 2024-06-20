@@ -121,6 +121,7 @@ locals {
           permission_set = pset
           principal_name = var.account_assignments[this_assignment].principal_name
           principal_type = var.account_assignments[this_assignment].principal_type
+          principal_idp  = var.account_assignments[this_assignment].principal_idp
           account_id     = length(regexall("[0-9]{12}", account)) > 0 ? account : lookup(local.accounts_ids_maps, account, null)
         }
       ]
@@ -134,7 +135,7 @@ locals {
     for s in local.flatten_account_assignment_data : format("Type:%s__Principal:%s__Permission:%s__Account:%s", s.principal_type, s.principal_name, s.permission_set, s.account_id) => s
   }
 
-  # List of permission sets, groups, and users that defined in this module
+  # List of permission sets, groups, and users that are defined in this module
   this_permission_sets = keys(var.permission_sets)
   this_groups = [
     for group in var.sso_groups : group.group_name
@@ -142,16 +143,5 @@ locals {
   this_users = [
     for user in var.sso_users : user.user_name
   ]
-
-  # For reference to resources that already exist in AWS
-  existing_permission_sets = distinct([
-    for pset in local.principals_and_their_account_assignments : pset.permission_set if !contains(local.this_permission_sets, pset.permission_set)
-  ])
-  existing_sso_users = distinct([
-    for k, v in local.users_and_their_groups : v.user_name if !contains(local.this_users, v.user_name)
-  ])
-  existing_sso_groups = distinct([
-    for k, v in local.users_and_their_groups : v.group_name if !contains(local.this_groups, v.group_name)
-  ])
 
 }
