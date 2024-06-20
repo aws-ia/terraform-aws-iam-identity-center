@@ -144,10 +144,11 @@ module "aws-iam-identity-center" {
   // Assign users/groups access to accounts with the specified permissions
   account_assignments = {
     Admin : {
-      principal_name  = "Admin"                                   // name of the user or group you wish to have access to the account(s)
-      principal_type  = "GROUP"                                   // entity type (user or group) you wish to have access to the account(s)
-      permission_sets = ["AdministratorAccess", "ViewOnlyAccess"] // permissions the user/group will have in the account(s)
-      account_ids = [                                             // account(s) the group will have access to. Permissions they will have in account are above line
+      principal_name  = "Admin"                                   # name of the user or group you wish to have access to the account(s)
+      principal_type  = "GROUP"                                   # principal type (user or group) you wish to have access to the account(s)
+      principal_idp   = "INTERNAL"                                # type of Identity Provider you are using. Valid values are "INTERNAL" (using Identity Store) or "EXTERNAL" (using external IdP such as EntraID, Okta, Google, etc.)
+      permission_sets = ["AdministratorAccess", "ViewOnlyAccess"] # permissions the user/group will have in the account(s)
+      account_ids = [                                             # account(s) the group will have access to. Permissions they will have in account are above line
       "111111111111", // replace with your desired account id
       "222222222222", // replace with your desired account id
       ]
@@ -155,6 +156,7 @@ module "aws-iam-identity-center" {
     Audit : {
       principal_name  = "Audit"
       principal_type  = "GROUP"
+      principal_idp   = "INTERNAL"
       permission_sets = ["ViewOnlyAccess"]
       account_ids = [
       "111111111111",
@@ -212,10 +214,13 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_account_assignments"></a> [account\_assignments](#input\_account\_assignments) | List of maps containing mapping between user/group, permission set and assigned accounts list. See account\_assignments description in README for more information about map values. | `map(any)` | `{}` | no |
-| <a name="input_permission_sets"></a> [permission\_sets](#input\_permission\_sets) | Map of maps containing Permission Set names as keys. See permission\_sets description in README for information about map values. | `any` | <pre>{<br>  "AdministratorAccess": {<br>    "description": "Provides full access to AWS services and resources.",<br>    "managed_policies": [<br>      "arn:aws:iam::aws:policy/AdministratorAccess"<br>    ],<br>    "session_duration": "PT2H"<br>  }<br>}</pre> | no |
-| <a name="input_sso_groups"></a> [sso\_groups](#input\_sso\_groups) | Names of the groups you wish to create in IAM Identity Center | `map(any)` | `{}` | no |
-| <a name="input_sso_users"></a> [sso\_users](#input\_sso\_users) | Names of the users you wish to create in IAM Identity Center | `map(any)` | `{}` | no |
+| <a name="input_account_assignments"></a> [account\_assignments](#input\_account\_assignments) | List of maps containing mapping between user/group, permission set and assigned accounts list. See account\_assignments description in README for more information about map values. | <pre>map(object({<br>    principal_name  = string<br>    principal_type  = string<br>    principal_idp   = string # acceptable values are either "INTERNAL" or "EXTERNAL"<br>    permission_sets = list(string)<br>    account_ids     = list(string)<br>  }))</pre> | `{}` | no |
+| <a name="input_existing_permission_sets"></a> [existing\_permission\_sets](#input\_existing\_permission\_sets) | Names of the existing permission\_sets that you wish to reference from IAM Identity Center. | <pre>map(object({<br>    permission_set_name = string<br>  }))</pre> | `{}` | no |
+| <a name="input_existing_sso_groups"></a> [existing\_sso\_groups](#input\_existing\_sso\_groups) | Names of the existing groups that you wish to reference from IAM Identity Center. | <pre>map(object({<br>    group_name = string<br>  }))</pre> | `{}` | no |
+| <a name="input_existing_sso_users"></a> [existing\_sso\_users](#input\_existing\_sso\_users) | Names of the existing users that you wish to reference from IAM Identity Center. | <pre>map(object({<br>    user_name        = string<br>    group_membership = optional(list(string), null) // only used if your IdP only syncs users, and you wish to manage which groups they should go in<br>  }))</pre> | `{}` | no |
+| <a name="input_permission_sets"></a> [permission\_sets](#input\_permission\_sets) | Permission Sets that you wish to create in IAM Identity Center. This variable is a map of maps containing Permission Set names as keys. See permission\_sets description in README for information about map values. | `any` | `{}` | no |
+| <a name="input_sso_groups"></a> [sso\_groups](#input\_sso\_groups) | Names of the groups you wish to create in IAM Identity Center. | <pre>map(object({<br>    group_name        = string<br>    group_description = optional(string, null)<br>  }))</pre> | `{}` | no |
+| <a name="input_sso_users"></a> [sso\_users](#input\_sso\_users) | Names of the users you wish to create in IAM Identity Center. | <pre>map(object({<br>    display_name     = optional(string)<br>    user_name        = string<br>    group_membership = list(string)<br>    # Name<br>    given_name       = string<br>    middle_name      = optional(string, null)<br>    family_name      = string<br>    name_formatted   = optional(string)<br>    honorific_prefix = optional(string, null)<br>    honorific_suffix = optional(string, null)<br>    # Email<br>    email            = string<br>    email_type       = optional(string, null)<br>    is_primary_email = optional(bool, true)<br>    # Phone Number<br>    phone_number            = optional(string, null)<br>    phone_number_type       = optional(string, null)<br>    is_primary_phone_number = optional(bool, true)<br>    # Address<br>    country            = optional(string, " ")<br>    locality           = optional(string, " ")<br>    address_formatted  = optional(string)<br>    postal_code        = optional(string, " ")<br>    is_primary_address = optional(bool, true)<br>    region             = optional(string, " ")<br>    street_address     = optional(string, " ")<br>    address_type       = optional(string, null)<br>    # Additional<br>    user_type          = optional(string, null)<br>    title              = optional(string, null)<br>    locale             = optional(string, null)<br>    nickname           = optional(string, null)<br>    preferred_language = optional(string, null)<br>    profile_url        = optional(string, null)<br>    timezone           = optional(string, null)<br>  }))</pre> | `{}` | no |
 
 ## Outputs
 
