@@ -25,12 +25,12 @@ data "aws_organizations_organization" "organization" {}
 
 # - Fetch of SSO Groups (externally defined) to be used for group membership assignment -
 data "aws_identitystore_group" "existing_sso_groups" {
-  for_each          = toset(local.existing_sso_groups)
+  for_each          = var.existing_sso_groups
   identity_store_id = local.sso_instance_id
   alternate_identifier {
     unique_attribute {
       attribute_path  = "DisplayName"
-      attribute_value = each.value
+      attribute_value = each.value.group_name
     }
   }
 }
@@ -38,23 +38,23 @@ data "aws_identitystore_group" "existing_sso_groups" {
 
 # - Fetch of SSO Users (externally defined) to be used for group membership assignment -
 data "aws_identitystore_user" "existing_sso_users" {
-  for_each          = toset(local.existing_sso_users)
+  for_each          = var.existing_sso_users
   identity_store_id = local.sso_instance_id
 
   alternate_identifier {
     # Filter users by user_name (nuzumaki, suchiha, dovis, etc.)
     unique_attribute {
       attribute_path  = "UserName"
-      attribute_value = each.value
+      attribute_value = each.value.user_name
     }
   }
 }
 
 # - Fetch of Permissions sets (externally defined) to be used for account assignment -
 data "aws_ssoadmin_permission_set" "existing_permission_sets" {
-  for_each     = toset(local.existing_permission_sets)
+  for_each     = var.existing_permission_sets
   instance_arn = local.ssoadmin_instance_arn
-  name         = each.value
+  name         = each.value.permission_set_name
 }
 
 
@@ -84,7 +84,6 @@ data "aws_ssoadmin_permission_set" "existing_permission_sets" {
 # permission_sets = "ViewOnlyAccess"
 # account_ids = "111111111111"
 #     }
-
 
 
 
