@@ -140,6 +140,15 @@ resource "aws_identitystore_group_membership" "sso_group_membership" {
 
 }
 
+resource "aws_identitystore_group_membership" "sso_group_membership_existing_sso_users" {
+  for_each          = local.users_and_their_groups_existing_sso_users
+  identity_store_id = local.sso_instance_id
+
+  group_id  = (contains(local.this_groups, each.value.group_name) ? aws_identitystore_group.sso_groups[each.value.group_name].group_id : data.aws_identitystore_group.existing_sso_groups[each.value.group_name].group_id)
+  member_id = (contains(local.this_users, each.value.user_name) ? aws_identitystore_user.sso_users[each.value.user_name].user_id : data.aws_identitystore_user.existing_sso_users[each.value.user_name].user_id)
+
+}
+
 
 # - SSO Permission Set -
 resource "aws_ssoadmin_permission_set" "pset" {

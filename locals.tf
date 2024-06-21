@@ -14,7 +14,23 @@ locals {
     for s in local.flatten_user_data : format("%s_%s", s.user_name, s.group_name) => s
   }
 
+  # Create a new local variable by flattening the complex type given in the variable "sso_users"
+  flatten_user_data_existing_sso_users = flatten([
+    for this_user in keys(var.existing_sso_users) : [
+      for group in var.existing_sso_users[this_user].group_membership : {
+        user_name  = var.existing_sso_users[this_user].user_name
+        group_name = group
+      }
+    ]
+  ])
+
+  users_and_their_groups_existing_sso_users = {
+    for s in local.flatten_user_data_existing_sso_users : format("%s_%s", s.user_name, s.group_name) => s
+  }
+
 }
+
+
 
 
 # - Permission Sets and Policies -
