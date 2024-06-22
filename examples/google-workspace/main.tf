@@ -12,7 +12,7 @@ module "aws-iam-identity-center" {
     },
   }
   # Assign Google user to groups
-  existing_sso_users = {
+  existing_google_sso_users = {
     googleuser : {
       user_name        = "googleuser" # this must be the name of a user that already exists in your AWS account
       group_membership = ["Admin", "Audit"]
