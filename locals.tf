@@ -165,8 +165,8 @@ locals {
   # this_existing_groups = [
   #   for group in var.existing_sso_groups : group.group_name
   # ]
-  this_existing_google_users = [
-    for user in var.existing_google_sso_users : user.user_name
-  ]
+  # this_existing_google_sso_users = [
+  #   for user in var.existing_google_sso_users : user.user_name
+  # ]
 
 }
