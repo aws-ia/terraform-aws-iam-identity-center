@@ -131,6 +131,7 @@ resource "aws_identitystore_user" "sso_users" {
 
 
 # - Identity Store Group Membership -
+# New Users with New Groups
 resource "aws_identitystore_group_membership" "sso_group_membership" {
   for_each          = local.users_and_their_groups
   identity_store_id = local.sso_instance_id
@@ -140,12 +141,14 @@ resource "aws_identitystore_group_membership" "sso_group_membership" {
 
 }
 
-resource "aws_identitystore_group_membership" "sso_group_membership_existing_sso_users" {
-  for_each          = local.users_and_their_groups_existing_sso_users
+# Existing Google Users with New Groups
+resource "aws_identitystore_group_membership" "sso_group_membership_existing_google_sso_users" {
+  for_each          = local.users_and_their_groups_existing_google_sso_users
   identity_store_id = local.sso_instance_id
 
   group_id  = (contains(local.this_groups, each.value.group_name) ? aws_identitystore_group.sso_groups[each.value.group_name].group_id : data.aws_identitystore_group.existing_sso_groups[each.value.group_name].group_id)
-  member_id = (contains(local.this_users, each.value.user_name) ? aws_identitystore_user.sso_users[each.value.user_name].user_id : data.aws_identitystore_user.existing_sso_users[each.value.user_name].user_id)
+  member_id = data.aws_identitystore_user.existing_google_sso_users[each.value.user_name].user_id
+  # member_id = (contains(local.this_existing_google_users, each.value.user_name) ? aws_identitystore_user.sso_users[each.value.user_name].user_id : data.aws_identitystore_user.existing_sso_users[each.value.user_name].user_id)
 
 }
 
@@ -238,7 +241,7 @@ resource "aws_ssoadmin_account_assignment" "account_assignment" {
 
   # Conditional use of resource or data source to reference the principal_id depending on if the principal_type is "GROUP" or "USER" and if the principal_idp is "INTERNAL" or "EXTERNAL". "INTERNAL" aligns with users or groups that were created with this module and use the default IAM Identity Store as the IdP. "EXTERNAL" aligns with users or groups that were created outside of this module (e.g. via external IdP such as EntraID, Okta, Google, etc.) and were synced via SCIM to IAM Identity Center.
 
-  principal_id = each.value.principal_type == "GROUP" && each.value.principal_idp == "INTERNAL" ? aws_identitystore_group.sso_groups[each.value.principal_name].group_id : (each.value.principal_type == "USER" && each.value.principal_idp == "INTERNAL" ? aws_identitystore_user.sso_users[each.value.principal_name].user_id : (each.value.principal_type == "GROUP" && each.value.principal_idp == "EXTERNAL" ? data.aws_identitystore_group.existing_sso_groups[each.value.principal_name].group_id : (each.value.principal_type == "USER" && each.value.principal_idp == "EXTERNAL" ? data.aws_identitystore_user.existing_sso_users[each.value.principal_name].user_id : null)))
+  principal_id = each.value.principal_type == "GROUP" && each.value.principal_idp == "INTERNAL" ? aws_identitystore_group.sso_groups[each.value.principal_name].group_id : (each.value.principal_type == "USER" && each.value.principal_idp == "INTERNAL" ? aws_identitystore_user.sso_users[each.value.principal_name].user_id : (each.value.principal_type == "GROUP" && each.value.principal_idp == "EXTERNAL" ? data.aws_identitystore_group.existing_sso_groups[each.value.principal_name].group_id : (each.value.principal_type == "USER" && each.value.principal_idp == "EXTERNAL" ? data.aws_identitystore_user.existing_sso_users[each.value.principal_name].user_id : (each.value.principal_type == "USER" && each.value.principal_idp == "GOOGLE") ? data.aws_identitystore_user.existing_google_sso_users[each.value.principal_name].user_id : null)))
 
   target_id   = each.value.account_id
   target_type = "AWS_ACCOUNT"

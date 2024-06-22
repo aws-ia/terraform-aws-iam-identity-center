@@ -50,6 +50,20 @@ data "aws_identitystore_user" "existing_sso_users" {
   }
 }
 
+# - Fetch of Google SSO Users (externally defined) to be used for group membership assignment -
+data "aws_identitystore_user" "existing_google_sso_users" {
+  for_each          = var.existing_google_sso_users
+  identity_store_id = local.sso_instance_id
+
+  alternate_identifier {
+    # Filter users by user_name (nuzumaki, suchiha, dovis, etc.)
+    unique_attribute {
+      attribute_path  = "UserName"
+      attribute_value = each.value.user_name
+    }
+  }
+}
+
 # - Fetch of Permissions sets (externally defined) to be used for account assignment -
 data "aws_ssoadmin_permission_set" "existing_permission_sets" {
   for_each     = var.existing_permission_sets

@@ -5,10 +5,12 @@ module "aws-iam-identity-center" {
   # Create group
   sso_groups = {
     Admin : {
-      group_name = "Admin"
+      group_name        = "Admin"
+      group_description = "Admin IAM Identity Center Group"
     },
     Audit : {
-      group_name = "Audit"
+      group_name        = "Audit"
+      group_description = "Audit IAM Identity Center Group"
     },
   }
   # Assign Google user to groups
@@ -66,7 +68,7 @@ module "aws-iam-identity-center" {
     googleuser : {
       principal_name  = "googleuser"
       principal_type  = "USER"
-      principal_idp   = "EXTERNAL" # set to "EXTERNAL" because user was created in "EXTERNAL" IdP and was synced to AWS via SCIM
+      principal_idp   = "GOOGLE" # set to "GOOGLE" because user was created in Google Workspace IdP and was synced to AWS via SCIM
       permission_sets = ["ViewOnlyAccess"]
       account_ids = [              // account(s) the user will have access to. Permissions they will have in account are above line
         local.account1_account_id, // locals are used to allow for global changes to multiple account assignments

@@ -14,7 +14,7 @@ locals {
     for s in local.flatten_user_data : format("%s_%s", s.user_name, s.group_name) => s
   }
 
-  # Create a new local variable by flattening the complex type given in the variable "sso_users"
+  # Create a new local variable by flattening the complex type given in the variable "existing_google_sso_users"
   flatten_user_data_existing_google_sso_users = flatten([
     for this_existing_google_user in keys(var.existing_google_sso_users) : [
       for group in var.existing_google_sso_users[this_existing_google_user].group_membership : {
@@ -24,7 +24,7 @@ locals {
     ]
   ])
 
-  users_and_their_groups_existing_sso_users = {
+  users_and_their_groups_existing_google_sso_users = {
     for s in local.flatten_user_data_existing_google_sso_users : format("%s_%s", s.user_name, s.group_name) => s
   }
 
@@ -165,8 +165,8 @@ locals {
   # this_existing_groups = [
   #   for group in var.existing_sso_groups : group.group_name
   # ]
-  # this_existing_users = [
-  #   for user in var.existing_sso_users : user.user_name
-  # ]
+  this_existing_google_users = [
+    for user in var.existing_google_sso_users : user.user_name
+  ]
 
 }
