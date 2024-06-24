@@ -70,6 +70,14 @@ variable "existing_sso_users" {
   }))
   default = {}
 }
+variable "existing_google_sso_users" {
+  description = "Names of the existing Google users that you wish to reference from IAM Identity Center."
+  type = map(object({
+    user_name        = string
+    group_membership = optional(list(string), null) // only used if your IdP only syncs users, and you wish to manage which groups they should go in
+  }))
+  default = {}
+}
 
 
 # Permission Sets

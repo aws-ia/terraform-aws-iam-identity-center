@@ -14,7 +14,23 @@ locals {
     for s in local.flatten_user_data : format("%s_%s", s.user_name, s.group_name) => s
   }
 
+  # Create a new local variable by flattening the complex type given in the variable "existing_google_sso_users"
+  flatten_user_data_existing_google_sso_users = flatten([
+    for this_existing_google_user in keys(var.existing_google_sso_users) : [
+      for group in var.existing_google_sso_users[this_existing_google_user].group_membership : {
+        user_name  = var.existing_google_sso_users[this_existing_google_user].user_name
+        group_name = group
+      }
+    ]
+  ])
+
+  users_and_their_groups_existing_google_sso_users = {
+    for s in local.flatten_user_data_existing_google_sso_users : format("%s_%s", s.user_name, s.group_name) => s
+  }
+
 }
+
+
 
 
 # - Permission Sets and Policies -
@@ -143,5 +159,14 @@ locals {
   this_users = [
     for user in var.sso_users : user.user_name
   ]
+
+  # List of permission sets, groups, and users that are defined in this module
+  # this_existing_permission_sets = keys(var.existing_permission_sets)
+  # this_existing_groups = [
+  #   for group in var.existing_sso_groups : group.group_name
+  # ]
+  # this_existing_google_sso_users = [
+  #   for user in var.existing_google_sso_users : user.user_name
+  # ]
 
 }
