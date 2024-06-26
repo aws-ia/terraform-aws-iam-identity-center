@@ -2,15 +2,22 @@ module "aws-iam-identity-center" {
   source = "../.." // local example
   # source = "aws-ia/iam-identity-center/aws" // remote example
 
-  # Ensure these User/Groups already exist in your AWS account
-  existing_sso_groups = {
-    testgroup : {
-      group_name = "testgroup" # this must be the name of a group that already exists in your AWS account
+  # Create group
+  sso_groups = {
+    Admin : {
+      group_name        = "Admin"
+      group_description = "Admin IAM Identity Center Group"
+    },
+    Audit : {
+      group_name        = "Audit"
+      group_description = "Audit IAM Identity Center Group"
     },
   }
-  existing_sso_users = {
-    testuser : {
-      user_name = "testuser" # this must be the name of a user that already exists in your AWS account
+  # Assign Google user to groups
+  existing_google_sso_users = {
+    googleuser : {
+      user_name        = "googleuser" # this must be the name of a user that already exists in your AWS account
+      group_membership = ["Admin", "Audit"]
     },
   }
 
@@ -33,12 +40,11 @@ module "aws-iam-identity-center" {
 
 
   # Assign users/groups access to accounts with the specified permissions
-  # Ensure these User/Groups already exist in your AWS account
   account_assignments = {
-    testgroup : {
-      principal_name  = "testgroup"
+    Admin : {
+      principal_name  = "Admin"
       principal_type  = "GROUP"
-      principal_idp   = "EXTERNAL"
+      principal_idp   = "INTERNAL" # set to "INTERNAL" because group was created on AWS side, not synced from "EXTERNAL" IdP
       permission_sets = ["AdministratorAccess", "ViewOnlyAccess", ]
       account_ids = [              // account(s) the user will have access to. Permissions they will have in account are above line
         local.account1_account_id, // locals are used to allow for global changes to multiple account assignments
@@ -47,10 +53,22 @@ module "aws-iam-identity-center" {
         # local.account4_account_id,
       ]
     },
-    testuser : {
-      principal_name  = "testuser"
+    Audit : {
+      principal_name  = "Audit"
+      principal_type  = "GROUP"
+      principal_idp   = "INTERNAL" # set to "INTERNAL" because group was created on AWS side, not synced from "EXTERNAL" IdP
+      permission_sets = ["ViewOnlyAccess", ]
+      account_ids = [              // account(s) the user will have access to. Permissions they will have in account are above line
+        local.account1_account_id, // locals are used to allow for global changes to multiple account assignments
+        # local.account2_account_id, // if hard coding the account ids, you would need to change them in every place you want to change
+        # local.account3_account_id, // these are defined in a locals.tf file, example is in this directory
+        # local.account4_account_id,
+      ]
+    },
+    googleuser : {
+      principal_name  = "googleuser"
       principal_type  = "USER"
-      principal_idp   = "EXTERNAL"
+      principal_idp   = "GOOGLE" # set to "GOOGLE" because user was created in Google Workspace IdP and was synced to AWS via SCIM
       permission_sets = ["ViewOnlyAccess"]
       account_ids = [              // account(s) the user will have access to. Permissions they will have in account are above line
         local.account1_account_id, // locals are used to allow for global changes to multiple account assignments

@@ -14,7 +14,23 @@ locals {
     for s in local.flatten_user_data : format("%s_%s", s.user_name, s.group_name) => s
   }
 
+  # Create a new local variable by flattening the complex type given in the variable "existing_google_sso_users"
+  flatten_user_data_existing_google_sso_users = flatten([
+    for this_existing_google_user in keys(var.existing_google_sso_users) : [
+      for group in var.existing_google_sso_users[this_existing_google_user].group_membership : {
+        user_name  = var.existing_google_sso_users[this_existing_google_user].user_name
+        group_name = group
+      }
+    ]
+  ])
+
+  users_and_their_groups_existing_google_sso_users = {
+    for s in local.flatten_user_data_existing_google_sso_users : format("%s_%s", s.user_name, s.group_name) => s
+  }
+
 }
+
+
 
 
 # - Permission Sets and Policies -
@@ -30,11 +46,12 @@ locals {
 
   # pset_name is the attribute name for each permission set map/object
   # pset_index is the corresponding index of the map of maps (which is the variable permission_sets)
-  aws_managed_permission_sets      = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.aws_managed_policies) }
-  customer_managed_permission_sets = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.customer_managed_policies) }
+  aws_managed_permission_sets                           = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.aws_managed_policies) }
+  customer_managed_permission_sets                      = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.customer_managed_policies) }
+  inline_policy_permission_sets                         = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.inline_policy) }
+  permissions_boundary_aws_managed_permission_sets      = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.permissions_boundary.managed_policy_arn) }
+  permissions_boundary_customer_managed_permission_sets = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.permissions_boundary.customer_managed_policy_reference) }
 
-  #  ! NOT CURRENTLY SUPPORTED !
-  # inline_policy_permission_sets = { for pset_name, pset_index in var.permission_sets : pset_name => pset_index if can(pset_index.inline_policy) }
 
 
 
@@ -67,23 +84,50 @@ locals {
     ]
   ])
 
-  #  ! NOT CURRENTLY SUPPORTED !
   # - Inline Policy -
-  #   pset_inline_policy_maps = flatten([
-  #     for pset_name, pset_index in local.inline_policy_permission_sets : [
-  #       for policy in pset_index.inline_policy : {
-  #         pset_name  = pset_name
-  #         inline_policy = policy
-  #         # path = path
-  #       } if pset_index.inline_policy != null && can(pset_index.inline_policy)
-  #     ]
-  #   ])
+  pset_inline_policy_maps = flatten([
+    for pset_name, pset_index in local.inline_policy_permission_sets : [
+      {
+        pset_name     = pset_name
+        inline_policy = pset_index.inline_policy
+      }
+    ]
+  ])
+
+  # - Permissions boundary -
+  pset_permissions_boundary_aws_managed_maps = flatten([
+    for pset_name, pset_index in local.permissions_boundary_aws_managed_permission_sets : [
+      {
+        pset_name = pset_name
+        boundary = {
+          managed_policy_arn = pset_index.permissions_boundary.managed_policy_arn
+        }
+      }
+    ]
+  ])
+
+  pset_permissions_boundary_customer_managed_maps = flatten([
+    for pset_name, pset_index in local.permissions_boundary_customer_managed_permission_sets : [
+      {
+        pset_name = pset_name
+        boundary = {
+          customer_managed_policy_reference = pset_index.permissions_boundary.customer_managed_policy_reference
+        }
+      }
+    ]
+  ])
 
 }
 
 
 # - Account Assignments -
 locals {
+
+  accounts_ids_maps = {
+    for idx, account in data.aws_organizations_organization.organization.accounts : account.name => account.id
+    if account.status == "ACTIVE" && can(data.aws_organizations_organization.organization.accounts)
+  }
+
   # Create a new local variable by flattening the complex type given in the variable "account_assignments"
   # This will be a 'tuple'
   flatten_account_assignment_data = flatten([
@@ -93,7 +137,8 @@ locals {
           permission_set = pset
           principal_name = var.account_assignments[this_assignment].principal_name
           principal_type = var.account_assignments[this_assignment].principal_type
-          account_id     = account
+          principal_idp  = var.account_assignments[this_assignment].principal_idp
+          account_id     = length(regexall("[0-9]{12}", account)) > 0 ? account : lookup(local.accounts_ids_maps, account, null)
         }
       ]
     ]
@@ -106,15 +151,22 @@ locals {
     for s in local.flatten_account_assignment_data : format("Type:%s__Principal:%s__Permission:%s__Account:%s", s.principal_type, s.principal_name, s.permission_set, s.account_id) => s
   }
 
+  # List of permission sets, groups, and users that are defined in this module
+  this_permission_sets = keys(var.permission_sets)
+  this_groups = [
+    for group in var.sso_groups : group.group_name
+  ]
+  this_users = [
+    for user in var.sso_users : user.user_name
+  ]
 
-  # iterates over account_assignents, sets that to be assignment.principal_name ONLY if the assignment.principal_type
-  #is GROUP. Essentially stores all the possible 'assignments' (account assignments) that would be attached to a user group
+  # List of permission sets, groups, and users that are defined in this module
+  # this_existing_permission_sets = keys(var.existing_permission_sets)
+  # this_existing_groups = [
+  #   for group in var.existing_sso_groups : group.group_name
+  # ]
+  # this_existing_google_sso_users = [
+  #   for user in var.existing_google_sso_users : user.user_name
+  # ]
 
-  # same thing, for sso_users but for USERs not GROUPs
-
-  # 'account_assignments_for_groups' is effectively a list of principal names where the account type is GROUP
-  account_assignments_for_groups = [for assignment in var.account_assignments : assignment.principal_name if assignment.principal_type == "GROUP"]
-
-  # 'account_assignments_for_users' is effectively a list of principal names where the account type is USER
-  account_assignments_for_users = [for assignment in var.account_assignments : assignment.principal_name if assignment.principal_type == "USER"]
 }

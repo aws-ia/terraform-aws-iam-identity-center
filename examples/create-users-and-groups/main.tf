@@ -24,14 +24,14 @@ module "aws-iam-identity-center" {
 
   // Create desired USERS in IAM Identity Center
   sso_users = {
-    NarutoUzumaki : {
-      group_membership = ["Admin", "Dev", "QA", "Audit"]
+    nuzumaki : {
+      group_membership = ["Admin", "Dev", "QA", "Audit", ]
       user_name        = "nuzumaki"
       given_name       = "Naruto"
       family_name      = "Uzumaki"
       email            = "nuzumaki@hiddenleaf.village"
     },
-    SasukeUchiha : {
+    suchiha : {
       group_membership = ["QA", "Audit"]
       user_name        = "suchiha"
       given_name       = "Sasuke"
@@ -59,8 +59,9 @@ module "aws-iam-identity-center" {
   // Assign users/groups access to accounts with the specified permissions
   account_assignments = {
     Admin : {
-      principal_name  = "Admin"                                   // name of the user or group you wish to have access to the account(s)
-      principal_type  = "GROUP"                                   // entity type (user or group) you wish to have access to the account(s). Valid values are "USER" or "GROUP"
+      principal_name  = "Admin"                                   # name of the user or group you wish to have access to the account(s)
+      principal_type  = "GROUP"                                   # entity type (user or group) you wish to have access to the account(s). Valid values are "USER" or "GROUP"
+      principal_idp   = "INTERNAL"                                # type of Identity Provider you are using. Valid values are "INTERNAL" (using Identity Store) or "EXTERNAL" (using external IdP such as EntraID, Okta, Google, etc.)
       permission_sets = ["AdministratorAccess", "ViewOnlyAccess"] // permissions the user/group will have in the account(s)
       account_ids = [                                             // account(s) the group will have access to. Permissions they will have in account are above line
         local.account1_account_id,
@@ -72,6 +73,7 @@ module "aws-iam-identity-center" {
     Audit : {
       principal_name  = "Audit"
       principal_type  = "GROUP"
+      principal_idp   = "INTERNAL" # type of Identity Provider you are using. Valid values are "INTERNAL" (using Identity Store) or "EXTERNAL" (using external IdP such as EntraID, Okta, Google, etc.)
       permission_sets = ["ViewOnlyAccess"]
       account_ids = [
         local.account1_account_id,

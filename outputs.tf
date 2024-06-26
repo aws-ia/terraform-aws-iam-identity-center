@@ -9,3 +9,8 @@ output "principals_and_assignments" {
   description = "Map containing account assignment data"
 
 }
+
+output "sso_groups_ids" {
+  value       = { for k, v in aws_identitystore_group.sso_groups : k => v.group_id }
+  description = "A map of SSO groups ids created by this module"
+}
