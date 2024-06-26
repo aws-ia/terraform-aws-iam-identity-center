@@ -17,6 +17,44 @@
 
 - Locals are used to allow for global changes to multiple account assignments. If hard coding the account ids for your account assignments, you would need to change them in every place you want to reference the value. To simplify this, we recommend storing your desired account ids in [local values](https://developer.hashicorp.com/terraform/language/values/locals). See the `examples` directory for more information and sample code.
 - When using **Customer Managed Policies** with account assignments, you must ensure these policies exist in all target accounts **before** using the module. Failure to do this will cause deployment errors because IAM Identity Center will attempt to reference policies that do not exist.
+- **Ensure that the name of your object(s) match the name of your principal(s) (e.g. user name or group name). See the following example with object/principal names 'Admin' and 'nuzumaki'**:
+
+```hcl
+  sso_groups = {
+    Admin : {
+      group_name        = "Admin"
+      group_description = "Admin IAM Identity Center Group"
+    },
+  }
+
+  // Create desired USERS in IAM Identity Center
+  sso_users = {
+    nuzumaki : {
+      group_membership = ["Admin",]
+      user_name        = "nuzumaki"
+      given_name       = "Naruto"
+      family_name      = "Uzumaki"
+      email            = "nuzumaki@hiddenleaf.village"
+    },
+  }
+
+```
+
+The object/principal names are referenced throughout the module. Failure to follow this guidance may lead to unintentional errors such as the following:
+
+```
+Error: Invalid index
+│
+│   on ../../main.tf line 141, in resource "aws_identitystore_group_membership" "sso_group_membership":
+│  141:   member_id = (contains(local.this_users, each.value.user_name) ? aws_identitystore_user.sso_users[each.value.user_name].user_id : data.aws_identitystore_user.existing_sso_users[each.value.user_name].id)
+│     ├────────────────
+│     │ aws_identitystore_user.sso_users is object with 2 attributes
+│     │ each.value.user_name is "nuzumaki"
+│
+│ The given key does not identify an element in this collection value.
+```
+
+To resolve this, ensure your object and principal names are the same (case-sensitive) and re-run `terraform plan` and `terraform apply`.
 
 ## Basic Usage - Create Users and Groups with AWS Managed Policies
 
@@ -49,14 +87,14 @@ module "aws-iam-identity-center" {
 
   // Create desired USERS in IAM Identity Center
   sso_users = {
-    NarutoUzumaki : {
+    nuzumaki : {
       group_membership = ["Admin", "Dev", "QA", "Audit"]
       user_name        = "nuzumaki"
       given_name       = "Naruto"
       family_name      = "Uzumaki"
       email            = "nuzumaki@hiddenleaf.village"
     },
-    SasukeUchiha : {
+    suchiha : {
       group_membership = ["QA", "Audit"]
       user_name        = "suchiha"
       given_name       = "Sasuke"
@@ -79,15 +117,38 @@ module "aws-iam-identity-center" {
       aws_managed_policies = ["arn:aws:iam::aws:policy/job-function/ViewOnlyAccess"]
       tags                 = { ManagedBy = "Terraform" }
     },
+    CustomPermissionAccess = {
+      description          = "Provides CustomPoweruser permissions.",
+      session_duration     = "PT3H", // how long until session expires - this means 3 hours. max is 12 hours
+      aws_managed_policies = [
+        "arn:aws:iam::aws:policy/ReadOnlyAccess",
+        "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+      ]
+      inline_policy        = data.aws_iam_policy_document.CustomPermissionInlinePolicy.json
+
+      // Only either managed_policy_arn or customer_managed_policy_reference can be specified.
+      // Before using customer_managed_policy_reference, first deploy the policy to the account.
+      // Don't in-place managed_policy_arn to/from customer_managed_policy_reference, delete it once.
+      permissions_boundary = {
+        // managed_policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
+
+        customer_managed_policy_reference = {
+          name = "ExamplePermissionsBoundaryPolicy"
+          // path = "/"
+        }
+      }
+      tags                 = { ManagedBy = "Terraform" }
+    },
   }
 
   // Assign users/groups access to accounts with the specified permissions
   account_assignments = {
     Admin : {
-      principal_name  = "Admin"                                   // name of the user or group you wish to have access to the account(s)
-      principal_type  = "GROUP"                                   // entity type (user or group) you wish to have access to the account(s)
-      permission_sets = ["AdministratorAccess", "ViewOnlyAccess"] // permissions the user/group will have in the account(s)
-      account_ids = [                                             // account(s) the group will have access to. Permissions they will have in account are above line
+      principal_name  = "Admin"                                   # name of the user or group you wish to have access to the account(s)
+      principal_type  = "GROUP"                                   # principal type (user or group) you wish to have access to the account(s)
+      principal_idp   = "INTERNAL"                                # type of Identity Provider you are using. Valid values are "INTERNAL" (using Identity Store) or "EXTERNAL" (using external IdP such as EntraID, Okta, Google, etc.)
+      permission_sets = ["AdministratorAccess", "ViewOnlyAccess"] # permissions the user/group will have in the account(s)
+      account_ids = [                                             # account(s) the group will have access to. Permissions they will have in account are above line
       "111111111111", // replace with your desired account id
       "222222222222", // replace with your desired account id
       ]
@@ -95,6 +156,7 @@ module "aws-iam-identity-center" {
     Audit : {
       principal_name  = "Audit"
       principal_type  = "GROUP"
+      principal_idp   = "INTERNAL"
       permission_sets = ["ViewOnlyAccess"]
       account_ids = [
       "111111111111",

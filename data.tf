@@ -99,4 +99,3 @@ data "aws_ssoadmin_permission_set" "existing_permission_sets" {
 # account_ids = "111111111111"
 #     }
 
-
