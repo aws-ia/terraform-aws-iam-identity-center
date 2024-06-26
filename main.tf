@@ -248,4 +248,3 @@ resource "aws_ssoadmin_account_assignment" "account_assignment" {
 }
 
 
-

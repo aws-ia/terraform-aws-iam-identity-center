@@ -97,12 +97,6 @@ module "aws-iam-identity-center" {
       inline_policy        = data.aws_iam_policy_document.restrictAccessInlinePolicy.json
       tags                 = { ManagedBy = "Terraform" }
     },
-    PowerUserAccess = {
-      description          = "Provides full access to AWS services and resources, but does not allow management of Users and groups",
-      session_duration     = "PT3H",
-      aws_managed_policies = ["arn:aws:iam::aws:policy/PowerUserAccess"]
-      tags                 = { ManagedBy = "Terraform" }
-    },
     ViewOnlyAccess = {
       description          = "This policy grants permissions to view resources and basic metadata across all AWS services",
       session_duration     = "PT3H",
@@ -114,14 +108,6 @@ module "aws-iam-identity-center" {
       }
       tags = { ManagedBy = "Terraform" }
     },
-    ReadOnlyAccess = {
-      description          = "This policy grants permissions to view resources and basic metadata across all AWS services",
-      session_duration     = "PT3H",
-      aws_managed_policies = ["arn:aws:iam::aws:policy/job-function/ViewOnlyAccess"]
-
-      managed_policy_arn = "arn:aws:iam::aws:policy/job-function/ViewOnlyAccess"
-      tags               = { ManagedBy = "Terraform" }
-    },
   }
   account_assignments = {
     Admin : {
@@ -130,7 +116,6 @@ module "aws-iam-identity-center" {
       principal_idp  = "INTERNAL"
       permission_sets = [
         "AdministratorAccess",
-        "PowerUserAccess",
         "ViewOnlyAccess",
         // existing permission set
         "AWSAdministratorAccess",
@@ -148,7 +133,6 @@ module "aws-iam-identity-center" {
       principal_type = "GROUP"
       principal_idp  = "INTERNAL"
       permission_sets = [
-        "PowerUserAccess",
         "ViewOnlyAccess",
       ]
       account_ids = [

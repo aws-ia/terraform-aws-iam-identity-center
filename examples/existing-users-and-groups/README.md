@@ -1,5 +1,5 @@
 <!-- BEGIN_TF_DOCS -->
-This directory contains examples of using the module to reference existing users and groups and assign permissions with **AWS Managed Policies**.
+This directory contains examples of using the module to **reference existing** users and groups and assign permissions with **AWS Managed Policies**.
 
 **IMPORTANT:** Ensure that the name of your object matches the name of your principal (e.g. user name or group name). See the following example with object/principal names 'Admin' and 'nuzumaki':
 
