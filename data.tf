@@ -98,4 +98,3 @@ data "aws_ssoadmin_permission_set" "existing_permission_sets" {
 # permission_sets = "ViewOnlyAccess"
 # account_ids = "111111111111"
 #     }
-

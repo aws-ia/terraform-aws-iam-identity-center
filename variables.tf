@@ -107,3 +107,41 @@ variable "account_assignments" {
 
   default = {}
 }
+
+# Applications 
+variable "sso_applications" {
+  description = "List of applications to be created in IAM Identity Center"
+  type = map(object({
+    name                     = string
+    application_provider_arn = string
+    description              = optional(string)
+    portal_options = optional(object({
+      sign_in_options = optional(object({
+        application_url = optional(string)
+        origin          = string
+      }))
+      visibility = optional(string)
+    }))
+    status              = string # acceptable values are "ENABLED" or "DISABLED"
+    client_token        = optional(string)
+    tags                = optional(map(string))
+    assignment_required = bool # Resource: aws_ssoadmin_application_assignment_configuration
+    assignments_access_scope = optional(
+      list(object({
+        authorized_targets = optional(list(string)) # List of application names
+        scope              = string
+      }))
+    )                                          # Resource: aws_ssoadmin_application_access_scope
+    group_assignments = optional(list(string)) # Resource aws_ssoadmin_application_assignment, keeping it separated for groups
+    user_assignments  = optional(list(string)) # Resource aws_ssoadmin_application_assignment, keeping it separated for users
+  }))
+  default = {}
+  validation {
+    condition = alltrue([
+      for app in values(var.sso_applications) :
+      app.application_provider_arn != null &&
+      app.application_provider_arn != ""
+    ])
+    error_message = "The application_provider_arn field is mandatory for all applications."
+  }
+}

@@ -170,3 +170,56 @@ locals {
   # ]
 
 }
+
+locals {
+
+  # List of applications contained in this module 
+  this_apps = [
+    for app in var.sso_applications : app.name
+  ]
+
+  # Creating a local variable by flattening the complex type related to Applications to extract a simple structure representing
+  # group-application assignments
+  apps_groups_assignments = flatten([
+    for app in var.sso_applications : [
+      for group in app.group_assignments : {
+        app_name       = app.name
+        group_name     = group
+        principal_type = "GROUP"
+      }
+    ]
+  ])
+
+  # Creating a local variable by flattening the complex type related to Applications to extract a simple structure representing
+  # user-application assignments
+  apps_users_assignments = flatten([
+    for app in var.sso_applications : [
+      for user in app.user_assignments : {
+        app_name       = app.name
+        user_name      = user
+        principal_type = "USER"
+      }
+    ]
+  ])
+
+  # Creating a local variable by flattening the complex type related to Applications to extract a simple structure representing
+  # apps assignments configurations
+  apps_assignments_configs = flatten([
+    for app in var.sso_applications : {
+      app_name            = app.name
+      assignment_required = app.assignment_required
+    }
+  ])
+
+  # Creating a local variable by flattening the complex type related to Applications to extract a simple structure representing
+  # app assignments access scopes 
+  apps_assignments_access_scopes = flatten([
+    for app in var.sso_applications : [
+      for ass_acc_scope in app.assignments_access_scope : {
+        app_name           = app.name
+        authorized_targets = ass_acc_scope.authorized_targets
+        scope              = ass_acc_scope.scope
+      }
+    ]
+  ])
+}
