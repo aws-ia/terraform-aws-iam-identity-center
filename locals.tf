@@ -173,11 +173,6 @@ locals {
 
 locals {
 
-  # List of applications contained in this module 
-  this_apps = [
-    for app in var.sso_applications : app.name
-  ]
-
   # Creating a local variable by flattening the complex type related to Applications to extract a simple structure representing
   # group-application assignments
   apps_groups_assignments = flatten([
