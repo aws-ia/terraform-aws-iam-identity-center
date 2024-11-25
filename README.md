@@ -196,6 +196,7 @@ module "aws-iam-identity-center" {
 ```
 
 ## Basic Usage - Create Applications and assign to Users and Groups
+
 ```
   // Create desired Applications in IAM Identity Center
   sso_applications = {
@@ -223,6 +224,7 @@ module "aws-iam-identity-center" {
     }
   }
 ```
+
 ## Contributing
 
 See the `CONTRIBUTING.md` file for information on how to contribute.
@@ -239,7 +241,7 @@ See the `CONTRIBUTING.md` file for information on how to contribute.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.73.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.35.0 |
 
 ## Modules
 
