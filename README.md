@@ -12,6 +12,7 @@
 - Dynamic Reference of Existing Groups
 - AWS Managed Policy Support
 - Customer Managed Policy Support
+- Dynamic Application Creation (with Portal Options, Users and Groups assignments and Assignments Access Scopes configuration)
 
 ## Important
 
@@ -36,6 +37,32 @@
       family_name      = "Uzumaki"
       email            = "nuzumaki@hiddenleaf.village"
     },
+  }
+
+  // Create desired Applications in IAM Identity Center
+  sso_applications = {
+    FirstApplication : {
+      application_provider_arn = "arn:aws:sso::aws:applicationProvider/custom"
+      description              = "I am the First Application"
+      name                     = "FirstApplication"
+      portal_options = {
+        sign_in_options = {
+          application_url = "http://example.com"
+          origin          = "APPLICATION"
+        }
+        visibility = "ENABLED"
+      }
+      status              = "ENABLED"
+      assignment_required = true
+      assignments_access_scope = [
+        {
+          authorized_targets = ["FirstApplication"]
+          scope              = "sso:account:access"
+        }
+      ]
+      group_assignments = ["Dev"]
+      user_assignments  = ["nuzumaki"]
+    }
   }
 
 ```
@@ -168,6 +195,36 @@ module "aws-iam-identity-center" {
 }
 ```
 
+## Basic Usage - Create Applications and assign to Users and Groups
+
+```
+  // Create desired Applications in IAM Identity Center
+  sso_applications = {
+    FirstApplication : {
+      application_provider_arn = "arn:aws:sso::aws:applicationProvider/custom"
+      description              = "I am the First Application"
+      name                     = "FirstApplication"
+      portal_options = {
+        sign_in_options = {
+          application_url = "http://example.com"
+          origin          = "APPLICATION"
+        }
+        visibility = "ENABLED"
+      }
+      status              = "ENABLED"
+      assignment_required = true
+      assignments_access_scope = [
+        {
+          authorized_targets = ["FirstApplication"]
+          scope              = "sso:account:access"
+        }
+      ]
+      group_assignments = ["Dev"]
+      user_assignments  = ["nuzumaki"]
+    }
+  }
+```
+
 ## Contributing
 
 See the `CONTRIBUTING.md` file for information on how to contribute.
@@ -199,6 +256,11 @@ No modules.
 | [aws_identitystore_group_membership.sso_group_membership_existing_google_sso_users](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/identitystore_group_membership) | resource |
 | [aws_identitystore_user.sso_users](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/identitystore_user) | resource |
 | [aws_ssoadmin_account_assignment.account_assignment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_account_assignment) | resource |
+| [aws_ssoadmin_application.sso_apps](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_application) | resource |
+| [aws_ssoadmin_application_access_scope.sso_apps_assignments_access_scope](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_application_access_scope) | resource |
+| [aws_ssoadmin_application_assignment.sso_apps_groups_assignments](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_application_assignment) | resource |
+| [aws_ssoadmin_application_assignment.sso_apps_users_assignments](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_application_assignment) | resource |
+| [aws_ssoadmin_application_assignment_configuration.sso_apps_assignments_configs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_application_assignment_configuration) | resource |
 | [aws_ssoadmin_customer_managed_policy_attachment.pset_customer_managed_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_customer_managed_policy_attachment) | resource |
 | [aws_ssoadmin_managed_policy_attachment.pset_aws_managed_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_managed_policy_attachment) | resource |
 | [aws_ssoadmin_permission_set.pset](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssoadmin_permission_set) | resource |
@@ -222,6 +284,7 @@ No modules.
 | <a name="input_existing_sso_groups"></a> [existing\_sso\_groups](#input\_existing\_sso\_groups) | Names of the existing groups that you wish to reference from IAM Identity Center. | <pre>map(object({<br>    group_name = string<br>  }))</pre> | `{}` | no |
 | <a name="input_existing_sso_users"></a> [existing\_sso\_users](#input\_existing\_sso\_users) | Names of the existing users that you wish to reference from IAM Identity Center. | <pre>map(object({<br>    user_name        = string<br>    group_membership = optional(list(string), null) // only used if your IdP only syncs users, and you wish to manage which groups they should go in<br>  }))</pre> | `{}` | no |
 | <a name="input_permission_sets"></a> [permission\_sets](#input\_permission\_sets) | Permission Sets that you wish to create in IAM Identity Center. This variable is a map of maps containing Permission Set names as keys. See permission\_sets description in README for information about map values. | `any` | `{}` | no |
+| <a name="input_sso_applications"></a> [sso\_applications](#input\_sso\_applications) | List of applications to be created in IAM Identity Center | <pre>map(object({<br>    name                     = string<br>    application_provider_arn = string<br>    description              = optional(string)<br>    portal_options = optional(object({<br>      sign_in_options = optional(object({<br>        application_url = optional(string)<br>        origin          = string<br>      }))<br>      visibility = optional(string)<br>    }))<br>    status              = string # acceptable values are "ENABLED" or "DISABLED"<br>    client_token        = optional(string)<br>    tags                = optional(map(string))<br>    assignment_required = bool # Resource: aws_ssoadmin_application_assignment_configuration<br>    assignments_access_scope = optional(<br>      list(object({<br>        authorized_targets = optional(list(string)) # List of application names<br>        scope              = string<br>      }))<br>    )                                          # Resource: aws_ssoadmin_application_access_scope<br>    group_assignments = optional(list(string)) # Resource aws_ssoadmin_application_assignment, keeping it separated for groups<br>    user_assignments  = optional(list(string)) # Resource aws_ssoadmin_application_assignment, keeping it separated for users<br>  }))</pre> | `{}` | no |
 | <a name="input_sso_groups"></a> [sso\_groups](#input\_sso\_groups) | Names of the groups you wish to create in IAM Identity Center. | <pre>map(object({<br>    group_name        = string<br>    group_description = optional(string, null)<br>  }))</pre> | `{}` | no |
 | <a name="input_sso_users"></a> [sso\_users](#input\_sso\_users) | Names of the users you wish to create in IAM Identity Center. | <pre>map(object({<br>    display_name     = optional(string)<br>    user_name        = string<br>    group_membership = list(string)<br>    # Name<br>    given_name       = string<br>    middle_name      = optional(string, null)<br>    family_name      = string<br>    name_formatted   = optional(string)<br>    honorific_prefix = optional(string, null)<br>    honorific_suffix = optional(string, null)<br>    # Email<br>    email            = string<br>    email_type       = optional(string, null)<br>    is_primary_email = optional(bool, true)<br>    # Phone Number<br>    phone_number            = optional(string, null)<br>    phone_number_type       = optional(string, null)<br>    is_primary_phone_number = optional(bool, true)<br>    # Address<br>    country            = optional(string, " ")<br>    locality           = optional(string, " ")<br>    address_formatted  = optional(string)<br>    postal_code        = optional(string, " ")<br>    is_primary_address = optional(bool, true)<br>    region             = optional(string, " ")<br>    street_address     = optional(string, " ")<br>    address_type       = optional(string, null)<br>    # Additional<br>    user_type          = optional(string, null)<br>    title              = optional(string, null)<br>    locale             = optional(string, null)<br>    nickname           = optional(string, null)<br>    preferred_language = optional(string, null)<br>    profile_url        = optional(string, null)<br>    timezone           = optional(string, null)<br>  }))</pre> | `{}` | no |
 
@@ -231,5 +294,8 @@ No modules.
 |------|-------------|
 | <a name="output_account_assignment_data"></a> [account\_assignment\_data](#output\_account\_assignment\_data) | Tuple containing account assignment data |
 | <a name="output_principals_and_assignments"></a> [principals\_and\_assignments](#output\_principals\_and\_assignments) | Map containing account assignment data |
+| <a name="output_sso_applications_arns"></a> [sso\_applications\_arns](#output\_sso\_applications\_arns) | A map of SSO Applications ARNs created by this module |
+| <a name="output_sso_applications_group_assignments"></a> [sso\_applications\_group\_assignments](#output\_sso\_applications\_group\_assignments) | A map of SSO Applications assignments with groups created by this module |
+| <a name="output_sso_applications_user_assignments"></a> [sso\_applications\_user\_assignments](#output\_sso\_applications\_user\_assignments) | A map of SSO Applications assignments with users created by this module |
 | <a name="output_sso_groups_ids"></a> [sso\_groups\_ids](#output\_sso\_groups\_ids) | A map of SSO groups ids created by this module |
 <!-- END_TF_DOCS -->

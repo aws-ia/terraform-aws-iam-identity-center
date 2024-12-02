@@ -247,4 +247,74 @@ resource "aws_ssoadmin_account_assignment" "account_assignment" {
   target_type = "AWS_ACCOUNT"
 }
 
+resource "aws_ssoadmin_application" "sso_apps" {
+  for_each                 = var.sso_applications == null ? {} : var.sso_applications
+  name                     = each.value.name
+  instance_arn             = local.ssoadmin_instance_arn
+  application_provider_arn = each.value.application_provider_arn
+  client_token             = each.value.client_token
+  description              = each.value.description
+
+  dynamic "portal_options" {
+    for_each = each.value.portal_options != null ? [each.value.portal_options] : []
+    content {
+      visibility = portal_options.value.visibility
+      dynamic "sign_in_options" {
+        for_each = each.value.portal_options.sign_in_options != null ? [each.value.portal_options.sign_in_options] : []
+        content {
+          application_url = portal_options.value.sign_in_options.application_url
+          origin          = portal_options.value.sign_in_options.origin
+        }
+      }
+    }
+  }
+  tags = each.value.tags
+}
+
+# SSO - Applications Assigments Configuration 
+resource "aws_ssoadmin_application_assignment_configuration" "sso_apps_assignments_configs" {
+  for_each = {
+    for idx, assignment_config in local.apps_assignments_configs :
+    "${assignment_config.app_name}-assignment-config" => assignment_config
+  }
+  application_arn     = aws_ssoadmin_application.sso_apps[each.value.app_name].application_arn
+  assignment_required = each.value.assignment_required
+}
+
+# SSO - Application Assignments access scope 
+resource "aws_ssoadmin_application_access_scope" "sso_apps_assignments_access_scope" {
+  for_each = {
+    for idx, app_access_scope in local.apps_assignments_access_scopes :
+    "${app_access_scope.app_name}-${app_access_scope.scope}" => app_access_scope
+  }
+  application_arn = aws_ssoadmin_application.sso_apps[each.value.app_name].application_arn
+  authorized_targets = [
+    for target in each.value.authorized_targets : aws_ssoadmin_application.sso_apps[target].application_arn 
+  ]
+  #authorized_targets = each.value.authorized_targets
+  scope = each.value.scope
+}
+
+# SSO - Applications Assignments 
+# Groups assignments
+resource "aws_ssoadmin_application_assignment" "sso_apps_groups_assignments" {
+  for_each = {
+    for idx, assignment in local.apps_groups_assignments :
+    "${assignment.app_name}-${assignment.group_name}" => assignment
+  }
+  application_arn = aws_ssoadmin_application.sso_apps[each.value.app_name].application_arn 
+  principal_id    = (contains(local.this_groups, each.value.group_name) ? aws_identitystore_group.sso_groups[each.value.group_name].group_id : data.aws_identitystore_group.existing_sso_groups[each.value.group_name].group_id)
+  principal_type  = each.value.principal_type
+}
+
+# Users assignments
+resource "aws_ssoadmin_application_assignment" "sso_apps_users_assignments" {
+  for_each = {
+    for idx, assignment in local.apps_users_assignments :
+    "${assignment.app_name}-${assignment.user_name}" => assignment
+  }
+  application_arn = aws_ssoadmin_application.sso_apps[each.value.app_name].application_arn 
+  principal_id    = (contains(local.this_users, each.value.user_name) ? aws_identitystore_user.sso_users[each.value.user_name].user_id : data.aws_identitystore_user.existing_sso_users[each.value.user_name].user_id)
+  principal_type  = each.value.principal_type
+}
 
