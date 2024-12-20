@@ -318,3 +318,5 @@ resource "aws_ssoadmin_application_assignment" "sso_apps_users_assignments" {
   principal_type  = each.value.principal_type
 }
 
+# SSO Instance Access Control
+
