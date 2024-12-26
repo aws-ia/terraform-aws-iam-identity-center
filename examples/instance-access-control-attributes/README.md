@@ -1,4 +1,22 @@
 <!-- BEGIN_TF_DOCS -->
+This directory contains examples of using the module to **create** instance access control attributes.
+
+**IMPORTANT:** Ensure that the name of your object matches the name of your principal (e.g. user name or group name). See the following example with object/principal names 'FirstName' and 'LastName':
+
+```hcl
+  sso_instance_access_control_attributes = {
+    FirstName = {
+      attribute_name = "FirstName"
+      source = ["$${path:name.givenName}"]
+    }
+    LastName = {
+      attribute_name = "LastName"
+      source = ["$${path:name.familyName}"]
+    }
+  }
+
+```
+
 ## Requirements
 
 No requirements.
