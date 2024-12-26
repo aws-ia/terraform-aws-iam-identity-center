@@ -145,3 +145,12 @@ variable "sso_applications" {
     error_message = "The application_provider_arn field is mandatory for all applications."
   }
 }
+
+variable "sso_instance_access_control_attributes" {
+  description = "List of attributes for access control. This is used to create the enable and use attributes for access control."
+  type = map(object({
+    attribute_name = string
+    source = set(string)
+  }))
+  default = null
+}
