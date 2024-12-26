@@ -223,7 +223,7 @@ locals {
 locals {
   # If user provides attributes, use those. If null/empty, provide minimum required
   attributes_to_use = (
-    var.sso_instance_access_control_attributes != null) ? var.sso_instance_access_control_attributes : {
+    var.sso_instance_access_control_attributes != {}) ? var.sso_instance_access_control_attributes : {
     # This default will only be used during plan phase and resource won't actually be created
     Dummy = {
       attribute_name = "Dummy"
