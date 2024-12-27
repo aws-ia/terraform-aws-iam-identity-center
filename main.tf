@@ -323,15 +323,12 @@ resource  "aws_ssoadmin_instance_access_control_attributes" "sso_access_control_
   count = length(var.sso_instance_access_control_attributes) <= 0 ? 0 : 1
   instance_arn = local.ssoadmin_instance_arn
   dynamic "attribute" {
-    for_each = local.attributes_to_use
+    for_each = var.sso_instance_access_control_attributes
     content {
       key   = attribute.key
       value {
         source = attribute.value.source
       }
     }
-  }
-  lifecycle { #TODO: need to check that this is a best practice and/or see if we should allow the user to define and/or override.
-    create_before_destroy = true
   }
 }

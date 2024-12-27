@@ -149,14 +149,14 @@ variable "sso_applications" {
 #Access Control Attributes
 variable "sso_instance_access_control_attributes" {
   description = "List of attributes for access control. This is used to create the enable and use attributes for access control."
-  type = map(object({
+  type = list(object({
     attribute_name = string
     source = set(string)
   }))
-  default = {}
+  default = []
   validation {
     condition = alltrue([
-      for attr in values(var.sso_instance_access_control_attributes) :
+      for attr in var.sso_instance_access_control_attributes :
       attr.attribute_name != null &&
       attr.attribute_name != ""
     ])
@@ -164,7 +164,7 @@ variable "sso_instance_access_control_attributes" {
   }
   validation {
     condition = alltrue([
-      for attr in values(var.sso_instance_access_control_attributes) :
+      for attr in var.sso_instance_access_control_attributes :
       attr.source != null &&
       length(attr.source) > 0 &&  # checks if the set is not empty
       alltrue([for s in attr.source : s != ""]) # checks no empty strings in set
