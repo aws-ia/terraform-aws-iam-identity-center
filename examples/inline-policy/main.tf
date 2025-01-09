@@ -52,7 +52,7 @@ module "aws-iam-identity-center" {
 
   existing_sso_groups = {
     AWSControlTowerAdmins : {
-      group_name = "AWSControlTowerAdmins"
+      group_name = "AWSControlTowerAdmins" # this must be the name of a sso group that already exists in your AWS account
     }
   }
 
@@ -85,7 +85,7 @@ module "aws-iam-identity-center" {
 
   existing_permission_sets = {
     AWSAdministratorAccess : {
-      permission_set_name = "AWSAdministratorAccess"
+      permission_set_name = "AWSAdministratorAccess" # this must be the name of a permission set that already exists in your AWS account
     },
   }
 
