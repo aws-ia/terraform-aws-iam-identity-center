@@ -78,8 +78,8 @@ locals {
     for pset_name, pset_index in local.customer_managed_permission_sets : [
       for policy in pset_index.customer_managed_policies : {
         pset_name   = pset_name
-        policy_name = policy
-        # path = path
+        policy_name = try(policy.name, policy)
+        policy_path = try(policy.path, "/")
       } if pset_index.customer_managed_policies != null && can(pset_index.customer_managed_policies)
     ]
   ])
@@ -207,7 +207,7 @@ locals {
   ])
 
   # Creating a local variable by flattening the complex type related to Applications to extract a simple structure representing
-  # app assignments access scopes 
+  # app assignments access scopes
   apps_assignments_access_scopes = flatten([
     for app in var.sso_applications : [
       for ass_acc_scope in app.assignments_access_scope : {
