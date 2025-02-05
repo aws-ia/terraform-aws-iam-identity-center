@@ -319,13 +319,13 @@ resource "aws_ssoadmin_application_assignment" "sso_apps_users_assignments" {
 }
 
 # SSO Instance Access Control Attributes
-resource  "aws_ssoadmin_instance_access_control_attributes" "sso_access_control_attributes" {
-  count = length(var.sso_instance_access_control_attributes) <= 0 ? 0 : 1
+resource "aws_ssoadmin_instance_access_control_attributes" "sso_access_control_attributes" {
+  count        = length(var.sso_instance_access_control_attributes) <= 0 ? 0 : 1
   instance_arn = local.ssoadmin_instance_arn
   dynamic "attribute" {
     for_each = var.sso_instance_access_control_attributes
     content {
-      key   = attribute.key
+      key = attribute.key
       value {
         source = attribute.value.source
       }
