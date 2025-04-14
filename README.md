@@ -18,7 +18,9 @@
 
 - Locals are used to allow for global changes to multiple account assignments. If hard coding the account ids for your account assignments, you would need to change them in every place you want to reference the value. To simplify this, we recommend storing your desired account ids in [local values](https://developer.hashicorp.com/terraform/language/values/locals). See the `examples` directory for more information and sample code.
 - When using **Customer Managed Policies** with account assignments, you must ensure these policies exist in all target accounts **before** using the module. Failure to do this will cause deployment errors because IAM Identity Center will attempt to reference policies that do not exist.
-- **Ensure that the name of your object(s) match the name of your principal(s) (e.g. user name or group name). See the following example with object/principal names 'Admin' and 'nuzumaki'**:
+- The names of your object(s) (e.g. the groups or users you wish to create or reference) are used to reference them elsewhere within the module, such as referencing groups you wish to add users to, or permission sets you wish to use with your account assignments. While the names of these objects can be anything since they are just local references to the each object, ensure you reference the string exactly (case-sensitive) when using elsewhere in the module.
+  - However, for the actual names of the existing groups, users, etc. **these must match exactly as they appear in your AWS IAM Identity Center configuration**. This is because for these resources, a data source is being used to fetch information about the existing resource using a filter on the name.
+  - To simplify this and prevent confusion, we recommend using the same name for the object as the resource itself. See the following for an example:
 
 ```hcl
   sso_groups = {
