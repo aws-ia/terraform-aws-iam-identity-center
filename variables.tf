@@ -151,7 +151,7 @@ variable "sso_instance_access_control_attributes" {
   description = "List of attributes for access control. This is used to create the enable and use attributes for access control."
   type = list(object({
     attribute_name = string
-    source = set(string)
+    source         = set(string)
   }))
   default = []
   validation {
@@ -166,7 +166,7 @@ variable "sso_instance_access_control_attributes" {
     condition = alltrue([
       for attr in var.sso_instance_access_control_attributes :
       attr.source != null &&
-      length(attr.source) > 0 &&  # checks if the set is not empty
+      length(attr.source) > 0 &&                # checks if the set is not empty
       alltrue([for s in attr.source : s != ""]) # checks no empty strings in set
     ])
     error_message = "The attribute source is mandatory and must contain non-empty strings."

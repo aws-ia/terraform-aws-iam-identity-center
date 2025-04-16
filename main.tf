@@ -191,7 +191,7 @@ resource "aws_ssoadmin_customer_managed_policy_attachment" "pset_customer_manage
   permission_set_arn = aws_ssoadmin_permission_set.pset[each.value.pset_name].arn
   customer_managed_policy_reference {
     name = each.value.policy_name
-    path = "/"
+    path = each.value.policy_path
   }
 
 }
@@ -271,7 +271,7 @@ resource "aws_ssoadmin_application" "sso_apps" {
   tags = each.value.tags
 }
 
-# SSO - Applications Assigments Configuration 
+# SSO - Applications Assigments Configuration
 resource "aws_ssoadmin_application_assignment_configuration" "sso_apps_assignments_configs" {
   for_each = {
     for idx, assignment_config in local.apps_assignments_configs :
@@ -281,7 +281,7 @@ resource "aws_ssoadmin_application_assignment_configuration" "sso_apps_assignmen
   assignment_required = each.value.assignment_required
 }
 
-# SSO - Application Assignments access scope 
+# SSO - Application Assignments access scope
 resource "aws_ssoadmin_application_access_scope" "sso_apps_assignments_access_scope" {
   for_each = {
     for idx, app_access_scope in local.apps_assignments_access_scopes :
@@ -289,20 +289,20 @@ resource "aws_ssoadmin_application_access_scope" "sso_apps_assignments_access_sc
   }
   application_arn = aws_ssoadmin_application.sso_apps[each.value.app_name].application_arn
   authorized_targets = [
-    for target in each.value.authorized_targets : aws_ssoadmin_application.sso_apps[target].application_arn 
+    for target in each.value.authorized_targets : aws_ssoadmin_application.sso_apps[target].application_arn
   ]
   #authorized_targets = each.value.authorized_targets
   scope = each.value.scope
 }
 
-# SSO - Applications Assignments 
+# SSO - Applications Assignments
 # Groups assignments
 resource "aws_ssoadmin_application_assignment" "sso_apps_groups_assignments" {
   for_each = {
     for idx, assignment in local.apps_groups_assignments :
     "${assignment.app_name}-${assignment.group_name}" => assignment
   }
-  application_arn = aws_ssoadmin_application.sso_apps[each.value.app_name].application_arn 
+  application_arn = aws_ssoadmin_application.sso_apps[each.value.app_name].application_arn
   principal_id    = (contains(local.this_groups, each.value.group_name) ? aws_identitystore_group.sso_groups[each.value.group_name].group_id : data.aws_identitystore_group.existing_sso_groups[each.value.group_name].group_id)
   principal_type  = each.value.principal_type
 }
@@ -313,19 +313,19 @@ resource "aws_ssoadmin_application_assignment" "sso_apps_users_assignments" {
     for idx, assignment in local.apps_users_assignments :
     "${assignment.app_name}-${assignment.user_name}" => assignment
   }
-  application_arn = aws_ssoadmin_application.sso_apps[each.value.app_name].application_arn 
+  application_arn = aws_ssoadmin_application.sso_apps[each.value.app_name].application_arn
   principal_id    = (contains(local.this_users, each.value.user_name) ? aws_identitystore_user.sso_users[each.value.user_name].user_id : data.aws_identitystore_user.existing_sso_users[each.value.user_name].user_id)
   principal_type  = each.value.principal_type
 }
 
 # SSO Instance Access Control Attributes
-resource  "aws_ssoadmin_instance_access_control_attributes" "sso_access_control_attributes" {
-  count = length(var.sso_instance_access_control_attributes) <= 0 ? 0 : 1
+resource "aws_ssoadmin_instance_access_control_attributes" "sso_access_control_attributes" {
+  count        = length(var.sso_instance_access_control_attributes) <= 0 ? 0 : 1
   instance_arn = local.ssoadmin_instance_arn
   dynamic "attribute" {
     for_each = var.sso_instance_access_control_attributes
     content {
-      key   = attribute.key
+      key = attribute.key
       value {
         source = attribute.value.source
       }
