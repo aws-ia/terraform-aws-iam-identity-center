@@ -1,23 +1,6 @@
 # Create a customer-managed policy
-resource "aws_iam_policy" "s3_read_only" {
-  name        = "S3ReadOnlyAccess"
-  description = "Provides read-only access to S3 buckets"
-  
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "s3:Get*",
-          "s3:List*",
-          "s3:Describe*"
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
-    ]
-  })
-}
+# NOTE: In this example we are using a customer managed policy called MyTestCustomerPolicy, this policy must exist in the account before running the terraform scripts
+
 
 module "aws-iam-identity-center" {
   source = "../.." // local example
@@ -73,15 +56,15 @@ module "aws-iam-identity-center" {
     S3ReadOnlyAccess = {
       description              = "Provides S3 read-only access using a customer-managed policy."
       session_duration         = "PT2H" // 2 hours
-      customer_managed_policies = [aws_iam_policy.s3_read_only.name]
+      customer_managed_policies = ["MyTestCustomerPolicy"] // pass the customer managed policy
       tags                     = { ManagedBy = "Terraform" }
     },
     # Permission set with both AWS managed and customer-managed policies
     HybridAccess = {
       description              = "Provides a mix of AWS managed and customer-managed policies."
       session_duration         = "PT2H" // 2 hours
-      aws_managed_policies     = ["arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"]
-      customer_managed_policies = [aws_iam_policy.s3_read_only.name]
+      aws_managed_policies     = ["arn:aws:iam::aws:policy/AdministratorAccess"]
+      customer_managed_policies = ["MyTestCustomerPolicy"] // pass the customer managed policy
       tags                     = { ManagedBy = "Terraform" }
     },
   }
