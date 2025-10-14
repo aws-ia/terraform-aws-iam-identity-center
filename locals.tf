@@ -1,10 +1,13 @@
 # - Users and Groups -
 locals {
+  # To support both managed and federated identities, let's combine the two user collections.
+  sso_users = merge(coalesce(var.sso_users, {}), coalesce(var.existing_sso_users, {}))
+
   # Create a new local variable by flattening the complex type given in the variable "sso_users"
   flatten_user_data = flatten([
-    for this_user in keys(var.sso_users) : [
-      for group in var.sso_users[this_user].group_membership : {
-        user_name  = var.sso_users[this_user].user_name
+    for this_user, user_data in local.sso_users : [
+      for group in coalesce(user_data.group_membership, []) : {
+        user_name  = user_data.user_name
         group_name = group
       }
     ]
