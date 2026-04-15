@@ -202,8 +202,9 @@ locals {
   apps_assignments_configs = flatten([
     for app in var.sso_applications : {
       app_name            = app.name
-      assignment_required = app.assignment_required
+      assignment_required = try(app.assignment_required, true)
     }
+    if try(app.supports_assignment_configuration, false)
   ])
 
   # Creating a local variable by flattening the complex type related to Applications to extract a simple structure representing

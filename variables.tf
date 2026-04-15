@@ -125,7 +125,8 @@ variable "sso_applications" {
     status              = string # acceptable values are "ENABLED" or "DISABLED"
     client_token        = optional(string)
     tags                = optional(map(string))
-    assignment_required = bool # Resource: aws_ssoadmin_application_assignment_configuration
+    assignment_required = optional(bool) # Resource: aws_ssoadmin_application_assignment_configuration
+    supports_assignment_configuration = optional(bool)
     assignments_access_scope = optional(
       list(object({
         authorized_targets = optional(list(string)) # List of application names
