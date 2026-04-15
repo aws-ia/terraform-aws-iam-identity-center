@@ -204,7 +204,7 @@ locals {
       app_name            = app.name
       assignment_required = try(app.assignment_required, true)
     }
-    if try(app.supports_assignment_configuration, false)
+    if app.supports_assignment_configuration != null && app.supports_assignment_configuration == true
   ])
 
   # Creating a local variable by flattening the complex type related to Applications to extract a simple structure representing
